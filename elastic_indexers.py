@@ -3,9 +3,12 @@ from elasticsearch import helpers
 
 
 class Indexer:
-    def __init__(self, connection, index_name):
+    def __init__(self, connection, index_name, query, scale, lonely):
         self.es = connection
         self.index_name = index_name
+        self.query = query
+        self.scale = scale
+        self.lonely = lonely
 
     def create_index(self):
         arguments = {
@@ -47,6 +50,15 @@ class Indexer:
                     "type": "text",
                     "fielddata": "true",
                     "analyzer": "default"
+                },
+                "query":{
+                    "type": "keyword"
+                },
+                "scale":{
+                    "type": "keyword"
+                },
+                "lonely":{
+                    "type": "keyword"
                 }
             }
         }
@@ -64,6 +76,11 @@ class Indexer:
             document["_type"] = "post"
             # Genera una explosión de campos en otro caso
             document["media_metadata"] = None
+            # Añadimos los siguientes campos
+            document["query"] = self.query
+            document["scale"] = self.scale
+            document["lonely"] = self.lonely
+
             document["_id"] = ident
 
             toIndex.append(document)
@@ -124,6 +141,15 @@ class NgramIndexer(Indexer):
                     "type": "text",
                     "fielddata": "true",
                     "analyzer": "default"
+                },
+                "query":{
+                    "type": "keyword"
+                },
+                "scale":{
+                    "type": "keyword"
+                },
+                "lonely":{
+                    "type": "keyword"
                 }
             }
         }

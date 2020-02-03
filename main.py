@@ -2,26 +2,73 @@ from psaw import PushshiftAPI
 import argparse
 from datetime import datetime
 import json
+import os
 from elasticsearch import Elasticsearch
 from elastic_indexers import Indexer, NgramIndexer
 
 api = PushshiftAPI()
 
 def main(args):
+    """
+        Punto de entrada de la aplicación.
+        Se cargan las frases desde el fichero de texto.
+        Para cada frase se consulta Pushshift, se extraen los documentos relevantes, 
+        se vuelcan en disco como ficheros .json y se indexan en el servidor de Elasticsearch
+        especificado.
+    """
     # Establece la conexión a Elastic
     global es
-    es = Elasticsearch()
+    es = Elasticsearch(args.elasticsearch)
 
-    # Crea el .json de backup donde se volcarán los post
-    global filename
-    filename = "dumps/" + args.query.replace(" " ,"") + "-Dump.json"
-    with open(filename, "w") as f:
-        f.write("{\"data\": [")
+    # Se cargan las frases a procesar desde el fichero pasado por parámetro
+    queries = load_queries(args.query_file)
 
-    query_API(args.query, args.scale, cache_size=3000)
+    # Crea un directorio para los volcados si no existe
+    if not os.path.exists(args.dump_dir):
+        os.makedirs(args.dump_dir)
 
-    with open(filename, "a") as f:
-        f.write("]}")
+    for query, scale in queries.items():
+        # Crea el .json de backup donde se volcarán los post
+        global dump_filename
+        dump_filename = args.dump_dir + "/" + query.replace(" " ,"") + "-Dump.json"
+        with open(dump_filename, "w") as f:
+            f.write('''
+                {{
+                    "query": {q},
+                    "scale": {s}
+                    "documents": [
+                '''.format(q=query, s=scale))
+
+        query_API(query, scale, cache_size=300)
+
+        with open(dump_filename, "a") as f:
+            f.write("]}")
+
+        print("Consulta completada: ", query)
+
+def load_queries(filename):
+    """
+        Carga las frases a consultar e indexar desde un fichero de texto pasado por parámetro.
+        Cada línea del fichero contendrá una frase y la escala la que pertenece, separadas por un ";".
+        Por ejemplo:
+            I have nobody to talk to;UCLA
+            I hate doing stuff alone;UCLA
+            ...
+        
+        Parámetros
+        ----------
+        filename: str
+            fichero de texto con las frases a utilizar en la ejecución del programa
+
+    """
+    queries = {}
+
+    with open(filename) as f:
+        for line in f:
+            query = line.strip().split(";")
+            queries[query[0]] = query[1]
+    
+    return queries
 
 def query_API(query, scale, cache_size = 3000):
     '''
@@ -29,45 +76,73 @@ def query_API(query, scale, cache_size = 3000):
         A cada submission se le añaden tres campos: la frase con la que se obtuvo, la escala a la que pertenece la frase y
         un booleano para indicar que el post dio positivo en una escala.
 
-        :param query: frase a consultar
-        :param scale: escala a la que pertenece la frase
-        :param cache_size: cada cuantos post se realiza una escritura, opcional. Por defecto, 10000
+        Parámetros
+        ----------
+        query: str
+            Frase a consultar contra la API
+        scale: str
+            Escala a la que pertenece la frase
+        cache_size: int
+            Opcional. Cada cuantos documentos se realiza un volcado e indexado
     '''
-
     gen = api.search_submissions(q=query)
     cache = []
     numIter = 0
 
     for c in gen:
-        if numIter >= 4:
+        if numIter >= 3:
             break
-
+        
         cache.append(c.d_)
 
         if len(cache) == cache_size:
-            print(".", end="")
             
             dump_to_file(cache, numIter == 0)
-            elastic_index(cache)
+            elastic_index(cache, query, scale)
 
             cache = []
             numIter += 1
 
 def dump_to_file(results, initial_dump):
     '''
-        Vuelca una lista de submissions a un fichero .json
-    '''
+        Vuelca una lista de submissions a un fichero .json. Los volcados se deben realizar de forma parcial 
+        debido a limitaciones de memoria.
+        Las escrituras son mucho más rápidas si se tratan como strings en vez de objetos JSON.
 
+        Parámetros
+        ----------
+        results: list
+            lista de documentos a volcar
+        initial_dump: boolean
+            para indicar que delimitador se usa al volcar los documentos, de forma que se 
+            construya un JSOn válido
+e           
+    '''
     if initial_dump:
         delimiter = ""
     else:
         delimiter=","
     
-    with open(filename, "a") as f:
+    with open(dump_filename, "a") as f:
         f.write(delimiter + json.dumps(results).strip("[").strip("]"))
 
-def elastic_index(results):
-    indexers = [Indexer(es, "reddit-loneliness"), NgramIndexer(es, "reddit-loneliness-ngram")]
+def elastic_index(results, query, scale):
+    """
+        Indexa la lista de documentos pasados por parámetro. 
+        Se crean dos índices si no existen, uno para unigramas y otro para bigramas. 
+        A cada documento se le añadirá tres campos: la consulta y escala utilizadas para obtenerlo y 
+        un booleano para marcarlos como positivos en soledad.
+
+        Parámetros
+        ----------
+        results: list
+            lista de documentos a indexar
+        query: str
+            frase utilizada para extraer los documentos
+        scale: str
+            escala psicométrica de la que proviene la frase
+    """
+    indexers = [Indexer(es, "reddit-loneliness", query, scale, lonely=True), NgramIndexer(es, "reddit-loneliness-ngram", query, scale, lonely=True)]
     for indexer in indexers:
         if not indexer.index_exists():
             print("Creado índice: " + indexer.index_name)
@@ -76,9 +151,13 @@ def elastic_index(results):
         indexer.index_documents(results)
 
 def parse_args():
+    """
+        Parseo de los argumentos con los que se ejecutó el programa
+    """
     parser = argparse.ArgumentParser(description="Script para la extracción de submissions de Reddit a través de pushshift.io")
-    parser.add_argument("query", help="Frase usada como query")
-    parser.add_argument("scale", help="Escala a la que pertenece la frase")
+    parser.add_argument("-q", "--query-file", default="frases.txt", help="Fichero con las frases a consultar.")
+    parser.add_argument("-d", "--dump-dir", default="dumps", help="Directorio donde se volcarán los archivos .json de backup")
+    parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="dirección del servidor Elasticsearch contra el que se indexará")
     args = parser.parse_args()
     return args
 
