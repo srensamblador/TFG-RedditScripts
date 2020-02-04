@@ -1,3 +1,26 @@
+#!/usr/bin/env python
+"""
+    Script para la extracción e indexado de posts de Reddit relevantes a items de escalas psicométricas
+    ----------------------------------------------------------------------------------------------
+    author: Samuel Cifuentes García
+
+    Script encargado de emplear la API de Pushshift para extraer el histórico de posts de Reddit que sean relevantes
+    para un item de una escala psicométrica de soledad. 
+    Se vuelcan los documentos obtenidos en ficheros .json.
+    Se indexan en Elasticsearch, previamente añadiendo campos para identificar la frase y escala con la que se obtuvieron los documentos,
+    además de añadiendo un booleano para marcar los documentos como positivos en alguna escala de soledad.
+
+    Para ejecutar el script se necesita un fichero de texto con frases y escalas separadas por líneas siguiendo el siguiente formato:
+        Frase 1;Escala 1
+        Frase 2;Escala 2
+        Frase 3;Escala 3
+        ...
+    Por defecto se lee el fichero frases.txt, pero se puede especificar otro mediante el parámetro -q o --query-file
+
+    También se puede especificar el directorio donde se volcarán los .json (-d o --dump-dir) así como la dirección del servidor Elasticsearch 
+    (-e o --elasticsearch, por defecto localhost:9300)
+"""
+
 from psaw import PushshiftAPI
 import argparse
 from datetime import datetime
@@ -9,13 +32,6 @@ from elastic_indexers import Indexer, NgramIndexer
 api = PushshiftAPI()
 
 def main(args):
-    """
-        Punto de entrada de la aplicación.
-        Se cargan las frases desde el fichero de texto.
-        Para cada frase se consulta Pushshift, se extraen los documentos relevantes, 
-        se vuelcan en disco como ficheros .json y se indexan en el servidor de Elasticsearch
-        especificado.
-    """
     # Establece la conexión a Elastic
     global es
     es = Elasticsearch(args.elasticsearch)
@@ -49,11 +65,6 @@ def main(args):
 def load_queries(filename):
     """
         Carga las frases a consultar e indexar desde un fichero de texto pasado por parámetro.
-        Cada línea del fichero contendrá una frase y la escala la que pertenece, separadas por un ";".
-        Por ejemplo:
-            I have nobody to talk to;UCLA
-            I hate doing stuff alone;UCLA
-            ...
         
         Parámetros
         ----------

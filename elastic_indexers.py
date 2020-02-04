@@ -3,6 +3,23 @@ from elasticsearch import helpers
 
 
 class Indexer:
+    """
+        Clase encargada de crear un índice en Elasticsearch e indexar documentos.
+
+        Atributos
+        ---------
+        es: Elasticsearch
+            Conexión a un servidor Elastic
+        index_name: str
+            Nombre del índice con el que trabajará el indexer
+        query: str
+            Frase con la que se obtuvieron los documentos
+        scale: str
+            Escala de la que proviene la frase
+        lonely: boolean
+            Flag con el que se marcará si los documentos a indexar son positivos en 
+            escalas de soledad o no
+    """
     def __init__(self, connection, index_name, query, scale, lonely):
         self.es = connection
         self.index_name = index_name
@@ -11,6 +28,13 @@ class Indexer:
         self.lonely = lonely
 
     def create_index(self):
+        """
+            Crea un índice de unigramas.
+            Se filtran palabras vacías.
+            Se habilitan los campos título, selftext, subreddit así como los campos añadidos (query, scale y lonely) como fielddata/keyword
+            para poder ser utilizados en agregaciones.
+        """
+
         arguments = {
             "settings": {
                 "index": {
@@ -47,9 +71,7 @@ class Indexer:
                     "analyzer": "default"
                 },
                 "subreddit": {
-                    "type": "text",
-                    "fielddata": "true",
-                    "analyzer": "default"
+                    "type": "keyword"
                 },
                 "query":{
                     "type": "keyword"
@@ -67,6 +89,12 @@ class Indexer:
             index=self.index_name, doc_type="post", body=arguments,  include_type_name=True)
 
     def index_documents(self, documents):
+        """
+            Indexa una lista de posts de Reddit, añadiendo los campos query, scale y lonely, 
+            para poder trazar de qué frase y escala provienen, así como si son posts positivos en 
+            soledad o no
+        """
+
         toIndex = []
 
         for document in documents:
@@ -89,10 +117,16 @@ class Indexer:
             toIndex), request_timeout=200)
 
     def index_exists(self):
+        """
+            Indica si el índice ya está presente en el servidor Elastic
+        """
         return self.es.indices.exists(index=self.index_name)
 
 
 class NgramIndexer(Indexer):
+    """
+        Clase heredera de Indexer, implementa un índice de bigramas.
+    """
     def create_index(self):
         arguments = {
             "settings": {
