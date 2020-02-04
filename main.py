@@ -32,15 +32,15 @@ import argparse
 import datetime
 import json
 import os
-from elasticsearch import Elasticsearch
-from elastic_indexers import Indexer, NgramIndexer
+#from elasticsearch import Elasticsearch
+#from elastic_indexers import Indexer, NgramIndexer
 
 api = PushshiftAPI()
 
 def main(args):
     # Establece la conexión a Elastic
-    global es
-    es = Elasticsearch(args.elasticsearch)
+    #global es
+    #es = Elasticsearch(args.elasticsearch)
 
     # Se cargan las frases a procesar desde el fichero pasado por parámetro
     queries = load_queries(args.query_file)
@@ -116,7 +116,7 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
         if len(cache) == cache_size:
             
             dump_to_file(cache, numIter == 0)
-            elastic_index(cache, query, scale)
+            #elastic_index(cache, query, scale)
             
             print(" *", datetime.datetime.fromtimestamp(cache[-1]["created_utc"]).strftime("%Y-%m-%d"))
 
