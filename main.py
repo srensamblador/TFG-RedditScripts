@@ -15,15 +15,21 @@
         Frase 2;Escala 2
         Frase 3;Escala 3
         ...
-    Por defecto se lee el fichero frases.txt, pero se puede especificar otro mediante el parámetro -q o --query-file
 
-    También se puede especificar el directorio donde se volcarán los .json (-d o --dump-dir) así como la dirección del servidor Elasticsearch 
-    (-e o --elasticsearch, por defecto localhost:9300)
+    Parámetros
+    ----------
+    -q, --query-file: fichero de texto desde el que se cargan las frases. Por defecto, frases.txt
+    -d, --dump-dir: directorio donde se volcarán los ficheros .json. Por defecto /dumps
+    -e, --elasticsearch: dirección del servidor Elasticsearch contra el que se indexará. Por defecto http://localhost:9200
+    -b, --before: fecha donde se comenzará a extraer posts hacia atrás en el tiempo. Por defecto, la fecha actual.
+
+    Ejemplo de línea de ejecución.
+        python main.py -q frases.txt -d dumps -e http://localhost:9200 -b 2019-12-31
 """
 
 from psaw import PushshiftAPI
 import argparse
-from datetime import datetime
+import datetime
 import json
 import os
 from elasticsearch import Elasticsearch
@@ -55,7 +61,7 @@ def main(args):
                     "documents": [
                 '''.format(q=query, s=scale))
 
-        query_API(query, scale, cache_size=300)
+        query_API(query, scale, args.before, cache_size=300)
 
         with open(dump_filename, "a") as f:
             f.write("]}")
@@ -81,7 +87,7 @@ def load_queries(filename):
     
     return queries
 
-def query_API(query, scale, cache_size = 3000):
+def query_API(query, scale,  before_timestamp, cache_size = 3000):
     '''
         Se utiliza psaw (https://github.com/dmarx/psaw) para consumir la API de Pushshift y extraer submissions. 
         A cada submission se le añaden tres campos: la frase con la que se obtuvo, la escala a la que pertenece la frase y
@@ -95,8 +101,10 @@ def query_API(query, scale, cache_size = 3000):
             Escala a la que pertenece la frase
         cache_size: int
             Opcional. Cada cuantos documentos se realiza un volcado e indexado
+        start_date: Date
+
     '''
-    gen = api.search_submissions(q=query)
+    gen = api.search_submissions(q=query, before=before_timestamp)
     cache = []
     numIter = 0
 
@@ -169,6 +177,9 @@ def parse_args():
     parser.add_argument("-q", "--query-file", default="frases.txt", help="Fichero con las frases a consultar.")
     parser.add_argument("-d", "--dump-dir", default="dumps", help="Directorio donde se volcarán los archivos .json de backup")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="dirección del servidor Elasticsearch contra el que se indexará")
+    parser.add_argument("-b", "--before", default=datetime.date.today(), 
+    type= lambda d: datetime.datetime.strptime(d, '%Y-%m-%d').date(), 
+    help="timestamp desde el que se empezará a recuperar documentos hacia atrás en formato yyyy-mm-dd")
     args = parser.parse_args()
     return args
 
