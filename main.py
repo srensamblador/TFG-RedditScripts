@@ -61,12 +61,14 @@ def main(args):
                     "documents": [
                 '''.format(q=query, s=scale))
 
-        query_API(query, scale, args.before, cache_size=300)
+        print("Procesando frase: \"" + query + "\"...")
+
+        query_API(query, scale, args.before, cache_size=3000)
 
         with open(dump_filename, "a") as f:
             f.write("]}")
 
-        print("Consulta completada: ", query)
+        print("Frase completada: \""+ query + "\"")
 
 def load_queries(filename):
     """
@@ -108,16 +110,15 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
     cache = []
     numIter = 0
 
-    for c in gen:
-        if numIter >= 3:
-            break
-        
+    for c in gen:        
         cache.append(c.d_)
 
         if len(cache) == cache_size:
             
             dump_to_file(cache, numIter == 0)
             elastic_index(cache, query, scale)
+            
+            print(" *", datetime.datetime.fromtimestamp(cache[-1]["created_utc"]).strftime("%Y-%m-%d"))
 
             cache = []
             numIter += 1
@@ -179,7 +180,7 @@ def parse_args():
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="dirección del servidor Elasticsearch contra el que se indexará")
     parser.add_argument("-b", "--before", default=datetime.date.today(), 
     type= lambda d: datetime.datetime.strptime(d, '%Y-%m-%d').date(), 
-    help="timestamp desde el que se empezará a recuperar documentos hacia atrás en formato yyyy-mm-dd")
+    help="timestamp desde el que se empezará a recuperar documentos hacia atrás en formato YYYY-mm-dd")
     args = parser.parse_args()
     return args
 
