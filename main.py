@@ -122,6 +122,9 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
 
             cache = []
             numIter += 1
+    
+    dump_to_file(cache, numIter == 0)
+    #elastic_index(cache, query, scale)
 
 def dump_to_file(results, initial_dump):
     '''
