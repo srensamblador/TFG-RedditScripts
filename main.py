@@ -53,20 +53,9 @@ def main(args):
         # Crea el .json de backup donde se volcarán los post
         global dump_filename
         dump_filename = args.dump_dir + "/" + query.replace(" " ,"") + "-Dump.json"
-        with open(dump_filename, "w") as f:
-            f.write('''
-                {{
-                    "query": {q},
-                    "scale": {s}
-                    "documents": [
-                '''.format(q=query, s=scale))
-
         print("Procesando frase: \"" + query + "\"...")
 
         query_API(query, scale, args.before, cache_size=3000)
-
-        with open(dump_filename, "a") as f:
-            f.write("]}")
 
         print("Frase completada: \""+ query + "\"")
 
@@ -110,7 +99,13 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
     cache = []
     numIter = 0
 
-    for c in gen:        
+    for c in gen:
+
+        if numIter > 5:
+            break;
+        c.d_["query"] = query
+        c.d_["scale"] = scale
+        c.d_["lonely"] = True        
         cache.append(c.d_)
 
         if len(cache) == cache_size:
@@ -141,13 +136,9 @@ def dump_to_file(results, initial_dump):
             construya un JSOn válido
 e           
     '''
-    if initial_dump:
-        delimiter = ""
-    else:
-        delimiter=","
-    
     with open(dump_filename, "a") as f:
-        f.write(delimiter + json.dumps(results).strip("[").strip("]"))
+        for result in results:
+            f.write(json.dumps(result) + "\n")
 
 def elastic_index(results, query, scale):
     """
@@ -165,7 +156,7 @@ def elastic_index(results, query, scale):
         scale: str
             escala psicométrica de la que proviene la frase
     """
-    indexers = [Indexer(es, "reddit-loneliness", query, scale, lonely=True), NgramIndexer(es, "reddit-loneliness-ngram", query, scale, lonely=True)]
+    indexers = [Indexer(es, "reddit-loneliness"), NgramIndexer(es, "reddit-loneliness-ngram")]
     for indexer in indexers:
         if not indexer.index_exists():
             print("Creado índice: " + indexer.index_name)
@@ -175,7 +166,7 @@ def elastic_index(results, query, scale):
 
 def parse_args():
     """
-        Parseo de los argumentos con los que se ejecutó el programa
+        Procesamiento de los argumentos con los que se ejecutó el programa
     """
     parser = argparse.ArgumentParser(description="Script para la extracción de submissions de Reddit a través de pushshift.io")
     parser.add_argument("-q", "--query-file", default="frases.txt", help="Fichero con las frases a consultar.")
@@ -184,7 +175,6 @@ def parse_args():
     parser.add_argument("-b", "--before", default=datetime.date.today(), 
     type= lambda d: datetime.datetime.strptime(d, '%Y-%m-%d').date(), 
     help="timestamp desde el que se empezará a recuperar documentos hacia atrás en formato YYYY-mm-dd")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 main(parse_args())
