@@ -100,9 +100,6 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
     numIter = 0
 
     for c in gen:
-
-        if numIter > 5:
-            break;
         c.d_["query"] = query
         c.d_["scale"] = scale
         c.d_["lonely"] = True        
