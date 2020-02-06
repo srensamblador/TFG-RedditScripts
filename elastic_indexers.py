@@ -1,6 +1,7 @@
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 
+__author__="Samuel Cifuentes García"
 
 class Indexer:
     """
