@@ -12,20 +12,10 @@ class Indexer:
             Conexión a un servidor Elastic
         index_name: str
             Nombre del índice con el que trabajará el indexer
-        query: str
-            Frase con la que se obtuvieron los documentos
-        scale: str
-            Escala de la que proviene la frase
-        lonely: boolean
-            Flag con el que se marcará si los documentos a indexar son positivos en 
-            escalas de soledad o no
     """
-    def __init__(self, connection, index_name, query, scale, lonely):
+    def __init__(self, connection, index_name):
         self.es = connection
         self.index_name = index_name
-        self.query = query
-        self.scale = scale
-        self.lonely = lonely
 
     def create_index(self):
         """
@@ -90,11 +80,8 @@ class Indexer:
 
     def index_documents(self, documents):
         """
-            Indexa una lista de posts de Reddit, añadiendo los campos query, scale y lonely, 
-            para poder trazar de qué frase y escala provienen, así como si son posts positivos en 
-            soledad o no
+            Indexa una lista de posts de Reddit.
         """
-
         toIndex = []
 
         for document in documents:
@@ -104,10 +91,6 @@ class Indexer:
             document["_type"] = "post"
             # Genera una explosión de campos en otro caso
             document["media_metadata"] = None
-            # Añadimos los siguientes campos
-            document["query"] = self.query
-            document["scale"] = self.scale
-            document["lonely"] = self.lonely
 
             document["_id"] = ident
 
