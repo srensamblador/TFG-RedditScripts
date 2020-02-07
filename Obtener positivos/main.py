@@ -118,7 +118,7 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
 
             cache = []
         
-    dump_to_file(cache, numIter == 0)
+    dump_to_file(cache)
     elastic_index(cache, query, scale)
 
 def dump_to_file(results):

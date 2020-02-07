@@ -2,7 +2,7 @@
 """
     Script para indexar documentos en Elastic a partir de ficheros .json de backup
     ------------------------------------------------------------------------------
-    El script procesa los ficheros .json del directorio que se especifique, indexándolos con unigramas y bigramas en los
+    El script procesa los ficheros .json (incluido comprimidos en .gz) del directorio que se especifique, indexándolos con unigramas y bigramas en los
     índices reddit-loneliness y reddit-loneliness-ngram.
 
     Parámetros
@@ -13,7 +13,7 @@
 
 from elasticsearch import Elasticsearch
 from elastic_indexers import Indexer, NgramIndexer
-import json
+import json, gzip
 import os
 import argparse
 
@@ -21,7 +21,7 @@ __author__="Samuel Cifuentes García"
 
 def main(args):
     # Carga los .json desde el directorio especificado
-    json_files = [file for file in os.listdir(args.data_dir) if file.endswith(".json")]
+    json_files = [file for file in os.listdir(args.data_dir) if file.endswith(".json") or file.endswith(".json.gz")]
 
     # Establecer conexión a Elastic
     es = Elasticsearch(args.elasticsearch)
@@ -34,8 +34,13 @@ def main(args):
             indexer.create_index()
 
     for filename in json_files:
+
         with open(args.data_dir + "/" + filename) as f:
             print("Procesando " + filename + "...")
+
+            # Si es un archivo comprimido, hay que descomprimirlo
+            if filename.endswith(".gz"):
+                f = gzip.open(f)
 
             block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
             block = f.readlines(block_size)
