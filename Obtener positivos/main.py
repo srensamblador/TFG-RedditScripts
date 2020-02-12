@@ -162,7 +162,7 @@ def elastic_index(results, query, scale):
 
 def parse_args():
     """
-        Procesamiento de los argumentos con los que se ejecutó el programa
+        Procesamiento de los argumentos con los que se ejecutó el script
     """
     parser = argparse.ArgumentParser(description="Script para la extracción de submissions de Reddit a través de pushshift.io")
     parser.add_argument("-q", "--query-file", default="frases.txt", help="Fichero con las frases a consultar.")

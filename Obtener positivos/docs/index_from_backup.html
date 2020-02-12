@@ -6,7 +6,7 @@
 <meta name="generator" content="pdoc 0.7.4" />
 <title>index_from_backup API documentation</title>
 <meta name="description" content="Script para indexar documentos en Elastic a partir de ficheros .json de backup
-El script procesa los ficheros .json del directorio que se …" />
+El script procesa los ficheros .json (incluido comprimidos en .gz) …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -22,7 +22,7 @@ El script procesa los ficheros .json del directorio que se …" />
 </header>
 <section id="section-intro">
 <h2 id="script-para-indexar-documentos-en-elastic-a-partir-de-ficheros-json-de-backup">Script para indexar documentos en Elastic a partir de ficheros .json de backup</h2>
-<p>El script procesa los ficheros .json del directorio que se especifique, indexándolos con unigramas y bigramas en los
+<p>El script procesa los ficheros .json (incluido comprimidos en .gz) del directorio que se especifique, indexándolos con unigramas y bigramas en los
 índices reddit-loneliness y reddit-loneliness-ngram.</p>
 <h2 id="parametros">Parámetros</h2>
 <ul>
@@ -37,7 +37,7 @@ El script procesa los ficheros .json del directorio que se …" />
 &#34;&#34;&#34;
     Script para indexar documentos en Elastic a partir de ficheros .json de backup
     ------------------------------------------------------------------------------
-    El script procesa los ficheros .json del directorio que se especifique, indexándolos con unigramas y bigramas en los
+    El script procesa los ficheros .json (incluido comprimidos en .gz) del directorio que se especifique, indexándolos con unigramas y bigramas en los
     índices reddit-loneliness y reddit-loneliness-ngram.
 
     Parámetros
@@ -48,7 +48,7 @@ El script procesa los ficheros .json del directorio que se …" />
 
 from elasticsearch import Elasticsearch
 from elastic_indexers import Indexer, NgramIndexer
-import json
+import json, gzip
 import os
 import argparse
 
@@ -56,7 +56,7 @@ __author__=&#34;Samuel Cifuentes García&#34;
 
 def main(args):
     # Carga los .json desde el directorio especificado
-    json_files = [file for file in os.listdir(args.data_dir) if file.endswith(&#34;.json&#34;)]
+    json_files = [file for file in os.listdir(args.data_dir) if file.endswith(&#34;.json&#34;) or file.endswith(&#34;.json.gz&#34;)]
 
     # Establecer conexión a Elastic
     es = Elasticsearch(args.elasticsearch)
@@ -69,8 +69,13 @@ def main(args):
             indexer.create_index()
 
     for filename in json_files:
+
         with open(args.data_dir + &#34;/&#34; + filename) as f:
             print(&#34;Procesando &#34; + filename + &#34;...&#34;)
+
+            # Si es un archivo comprimido, hay que descomprimirlo
+            if filename.endswith(&#34;.gz&#34;):
+                f = gzip.open(f)
 
             block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
             block = f.readlines(block_size)
@@ -168,7 +173,7 @@ if __name__ == &#34;__main__&#34;:
 </summary>
 <pre><code class="python">def main(args):
     # Carga los .json desde el directorio especificado
-    json_files = [file for file in os.listdir(args.data_dir) if file.endswith(&#34;.json&#34;)]
+    json_files = [file for file in os.listdir(args.data_dir) if file.endswith(&#34;.json&#34;) or file.endswith(&#34;.json.gz&#34;)]
 
     # Establecer conexión a Elastic
     es = Elasticsearch(args.elasticsearch)
@@ -181,8 +186,13 @@ if __name__ == &#34;__main__&#34;:
             indexer.create_index()
 
     for filename in json_files:
+
         with open(args.data_dir + &#34;/&#34; + filename) as f:
             print(&#34;Procesando &#34; + filename + &#34;...&#34;)
+
+            # Si es un archivo comprimido, hay que descomprimirlo
+            if filename.endswith(&#34;.gz&#34;):
+                f = gzip.open(f)
 
             block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
             block = f.readlines(block_size)

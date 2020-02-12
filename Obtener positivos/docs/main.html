@@ -167,7 +167,7 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
 
             cache = []
         
-    dump_to_file(cache, numIter == 0)
+    dump_to_file(cache)
     elastic_index(cache, query, scale)
 
 def dump_to_file(results):
@@ -211,7 +211,7 @@ def elastic_index(results, query, scale):
 
 def parse_args():
     &#34;&#34;&#34;
-        Procesamiento de los argumentos con los que se ejecutó el programa
+        Procesamiento de los argumentos con los que se ejecutó el script
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para la extracción de submissions de Reddit a través de pushshift.io&#34;)
     parser.add_argument(&#34;-q&#34;, &#34;--query-file&#34;, default=&#34;frases.txt&#34;, help=&#34;Fichero con las frases a consultar.&#34;)
@@ -385,14 +385,14 @@ un booleano para marcarlos como positivos en soledad.</p>
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Procesamiento de los argumentos con los que se ejecutó el programa</p></section>
+<section class="desc"><p>Procesamiento de los argumentos con los que se ejecutó el script</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def parse_args():
     &#34;&#34;&#34;
-        Procesamiento de los argumentos con los que se ejecutó el programa
+        Procesamiento de los argumentos con los que se ejecutó el script
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para la extracción de submissions de Reddit a través de pushshift.io&#34;)
     parser.add_argument(&#34;-q&#34;, &#34;--query-file&#34;, default=&#34;frases.txt&#34;, help=&#34;Fichero con las frases a consultar.&#34;)
@@ -461,7 +461,7 @@ un booleano para indicar que el post dio positivo en una escala.</p>
 
             cache = []
         
-    dump_to_file(cache, numIter == 0)
+    dump_to_file(cache)
     elastic_index(cache, query, scale)</code></pre>
 </details>
 </dd>
