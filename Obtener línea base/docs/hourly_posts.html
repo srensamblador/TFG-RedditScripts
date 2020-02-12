@@ -23,8 +23,9 @@ Sobre un índice de Elasticsearch especificado, se obtiene el número de …" />
 <section id="section-intro">
 <h2 id="script-para-obtener-el-numero-de-post-por-hora-en-el-indice-de-elasticsearch">Script para obtener el número de post por hora en el índice de Elasticsearch</h2>
 <p>Sobre un índice de Elasticsearch especificado, se obtiene el número de posts en cada intervalo de una hora.<br>
-La lista de datos resultante se serializa en un fichero con el siguiente formato:<br>
-TimestampInicial;TimestampFinal;NúmeroPosts</p>
+La lista de datos resultante se serializa en un fichero con el siguiente formato:</p>
+<pre><code>TimestampInicial;TimestampFinal;NúmeroPosts
+</code></pre>
 <h2 id="parametros">Parámetros</h2>
 <ul>
 <li>-e, &ndash;elasticsearch: dirección del servidor Elasticsearch. Por defecto, <a href="http://localhost:9200">http://localhost:9200</a></li>
@@ -40,7 +41,8 @@ TimestampInicial;TimestampFinal;NúmeroPosts</p>
     Script para obtener el número de post por hora en el índice de Elasticsearch
     ----------------------------------------------------------------------------
     Sobre un índice de Elasticsearch especificado, se obtiene el número de posts en cada intervalo de una hora.  
-    La lista de datos resultante se serializa en un fichero con el siguiente formato:  
+    La lista de datos resultante se serializa en un fichero con el siguiente formato:
+
         TimestampInicial;TimestampFinal;NúmeroPosts
     
     Parámetros

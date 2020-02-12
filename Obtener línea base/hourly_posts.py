@@ -3,7 +3,8 @@
     Script para obtener el número de post por hora en el índice de Elasticsearch
     ----------------------------------------------------------------------------
     Sobre un índice de Elasticsearch especificado, se obtiene el número de posts en cada intervalo de una hora.  
-    La lista de datos resultante se serializa en un fichero con el siguiente formato:  
+    La lista de datos resultante se serializa en un fichero con el siguiente formato:
+
         TimestampInicial;TimestampFinal;NúmeroPosts
     
     Parámetros
