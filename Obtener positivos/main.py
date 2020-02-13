@@ -60,7 +60,7 @@ def main(args):
         dump_filename = args.dump_dir + "/" + query.replace(" " ,"") + "-Dump.json"
         print("Procesando frase: \"" + query + "\"...")
 
-        query_API(query, scale, args.before, cache_size=3000)
+        query_API(query, scale, args.before, cache_size=100)
 
         print("Frase completada: \""+ query + "\"")
 
@@ -102,8 +102,13 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
     """
     gen = api.search_submissions(q=query, before=before_timestamp)
     cache = []
-
+    
+    numIter = 0 #TODO delete
     for c in gen:
+        # TODO delete
+        if numIter >5:
+            break
+
         c.d_["query"] = query
         c.d_["scale"] = scale
         c.d_["lonely"] = True        
@@ -117,6 +122,9 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
             print(" *", datetime.datetime.fromtimestamp(cache[-1]["created_utc"]).strftime("%Y-%m-%d"))
 
             cache = []
+
+            # TODO delete
+            numIter += 1
         
     dump_to_file(cache)
     elastic_index(cache, query, scale)

@@ -34,20 +34,21 @@ def main(args):
             indexer.create_index()
 
     for filename in json_files:
+        path = args.data_dir + "/" + filename
+        if filename.endswith(".gz"):
+            f = gzip.open(path)
+        else:
+            f = open(path)
 
-        with open(args.data_dir + "/" + filename) as f:
-            print("Procesando " + filename + "...")
+        print("Procesando " + filename + "...")
 
-            # Si es un archivo comprimido, hay que descomprimirlo
-            if filename.endswith(".gz"):
-                f = gzip.open(f)
-
-            block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
+        block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
+        block = f.readlines(block_size)
+        while block:
+            index_block(block, indexers)
             block = f.readlines(block_size)
-            while block:
-                index_block(block, indexers)
-                block = f.readlines(block_size)
-            
+        
+        f.close()
         print(filename + " completado")
 
 

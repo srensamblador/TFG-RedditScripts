@@ -1,7 +1,8 @@
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 
-__author__="Samuel Cifuentes García"
+__author__ = "Samuel Cifuentes García"
+
 
 class Indexer:
     """
@@ -14,6 +15,7 @@ class Indexer:
         index_name: str
             Nombre del índice con el que trabajará el indexer
     """
+
     def __init__(self, connection, index_name):
         self.es = connection
         self.index_name = index_name
@@ -64,13 +66,13 @@ class Indexer:
                 "subreddit": {
                     "type": "keyword"
                 },
-                "query":{
+                "query": {
                     "type": "keyword"
                 },
-                "scale":{
+                "scale": {
                     "type": "keyword"
                 },
-                "lonely":{
+                "lonely": {
                     "type": "keyword"
                 }
             }
@@ -81,24 +83,51 @@ class Indexer:
 
     def index_documents(self, documents):
         """
-            Indexa una lista de posts de Reddit.
+            Indexa una lista de posts de Reddit.  
+            Se filtran los campos de modo que solo indexamos los necesarios
         """
         toIndex = []
 
         for document in documents:
-            ident = document["id"]
+            processed_post = {
+                "_index": self.index_name,
+                "_type": "post",
+                "_id": document.get("id"),
+                "author": document.get("author"),
+                "category": document.get("category"),
+                "content_categories": document.get("content_categories"),
+                "created_utc": document.get("created_utc"),
+                "domain": document.get("domain"),
+                "downs": document.get("downs"),
+                "gilded": document.get("gilded"),
+                "likes": document.get("likes"),
+                "name": document.get("name"),
+                "num_comments": document.get("num_comments"),
+                "num_reports": document.get("num_reports"),
+                "over_18": document.get("over_18"),
+                "permalink": document.get("permalink"),
+                "post_categories": document.get("post_categories"),
+                "removal_reason": document.get("removal_reason"),
+                "report_reasons": document.get("report_reasons"),
+                "retrieved_on": document.get("retrieved_on"),
+                "score": document.get("score"),
+                "selftext": document.get("selftext"),
+                "selftext_html": document.get("selftext_html"),
+                "subreddit": document.get("subreddit"),
+                "subreddit_id": document.get("subreddit_id"),
+                "subreddit_type": document.get("subreddit_type"),
+                "title": document.get("title"),
+                "ups": document.get("ups"),
+                "url": document.get("url"),
+                "user_reports": document.get("user_reports"),
+                "query": document.get("query"),
+                "scale": document.get("scale"),
+                "lonely": document.get("lonely")
+            }
 
-            document["_index"] = self.index_name
-            document["_type"] = "post"
-            # Genera una explosión de campos en otro caso
-            document["media_metadata"] = None
-
-            document["_id"] = ident
-
-            toIndex.append(document)
-
-        helpers.bulk(self.es, toIndex, chunk_size=len(
-            toIndex), request_timeout=200)
+            toIndex.append(processed_post)
+            
+            helpers.bulk(self.es, toIndex, chunk_size=len(toIndex), request_timeout=200, raise_on_error=False)
 
     def index_exists(self):
         """
@@ -111,6 +140,7 @@ class NgramIndexer(Indexer):
     """
         Clase heredera de Indexer, implementa un índice de bigramas.
     """
+
     def create_index(self):
         arguments = {
             "settings": {
@@ -160,13 +190,13 @@ class NgramIndexer(Indexer):
                     "fielddata": "true",
                     "analyzer": "default"
                 },
-                "query":{
+                "query": {
                     "type": "keyword"
                 },
-                "scale":{
+                "scale": {
                     "type": "keyword"
                 },
-                "lonely":{
+                "lonely": {
                     "type": "keyword"
                 }
             }
