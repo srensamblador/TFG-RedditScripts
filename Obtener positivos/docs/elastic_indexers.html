@@ -27,7 +27,8 @@
 <pre><code class="python">from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 
-__author__=&#34;Samuel Cifuentes García&#34;
+__author__ = &#34;Samuel Cifuentes García&#34;
+
 
 class Indexer:
     &#34;&#34;&#34;
@@ -40,9 +41,11 @@ class Indexer:
         index_name: str
             Nombre del índice con el que trabajará el indexer
     &#34;&#34;&#34;
+
     def __init__(self, connection, index_name):
         self.es = connection
         self.index_name = index_name
+        self.stats = {&#34;indexed&#34;:0, &#34;errors&#34;:0}
 
     def create_index(self):
         &#34;&#34;&#34;
@@ -90,13 +93,13 @@ class Indexer:
                 &#34;subreddit&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;query&#34;:{
+                &#34;query&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;scale&#34;:{
+                &#34;scale&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;lonely&#34;:{
+                &#34;lonely&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 }
             }
@@ -107,24 +110,32 @@ class Indexer:
 
     def index_documents(self, documents):
         &#34;&#34;&#34;
-            Indexa una lista de posts de Reddit.
+            Indexa una lista de posts de Reddit.  
+            Filtramos los campos que necesitamos
         &#34;&#34;&#34;
         toIndex = []
+        # Lista de campos que queremos conservar
+        fields = [&#34;author&#34;, &#34;category&#34;, &#34;content_categories&#34;, &#34;created_utc&#34;, &#34;domain&#34;, &#34;downs&#34;, &#34;gilded&#34;, &#34;likes&#34;,
+        &#34;name&#34;, &#34;num_comments&#34;, &#34;num_reports&#34;, &#34;over_18&#34;, &#34;permalink&#34;, &#34;post_categories&#34;, &#34;removal_reason&#34;, &#34;report_reasons&#34;,
+        &#34;retrieved_on&#34;, &#34;score&#34;, &#34;selftext&#34;, &#34;selftext_html&#34;, &#34;subreddit&#34;, &#34;subreddit_id&#34;, &#34;subreddit_type&#34;, &#34;title&#34;, 
+        &#34;ups&#34;, &#34;url&#34;, &#34;user_reports&#34;, &#34;query&#34;, &#34;scale&#34;, &#34;lonely&#34;]
 
         for document in documents:
-            ident = document[&#34;id&#34;]
+            processed_post = {
+                &#34;_index&#34;: self.index_name,
+                &#34;_type&#34;: &#34;post&#34;,
+                &#34;_id&#34;: document.get(&#34;id&#34;)
+            }
 
-            document[&#34;_index&#34;] = self.index_name
-            document[&#34;_type&#34;] = &#34;post&#34;
-            # Genera una explosión de campos en otro caso
-            document[&#34;media_metadata&#34;] = None
+            for field in fields:
+                processed_post[field] = document.get(field)
 
-            document[&#34;_id&#34;] = ident
+            toIndex.append(processed_post)
+            
+        bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(toIndex), request_timeout=200, raise_on_error=False)
+        self.stats[&#34;indexed&#34;] += bulk_stats[0]
+        self.stats[&#34;errors&#34;] += len(bulk_stats[1])
 
-            toIndex.append(document)
-
-        helpers.bulk(self.es, toIndex, chunk_size=len(
-            toIndex), request_timeout=200)
 
     def index_exists(self):
         &#34;&#34;&#34;
@@ -137,6 +148,7 @@ class NgramIndexer(Indexer):
     &#34;&#34;&#34;
         Clase heredera de Indexer, implementa un índice de bigramas.
     &#34;&#34;&#34;
+
     def create_index(self):
         arguments = {
             &#34;settings&#34;: {
@@ -186,13 +198,13 @@ class NgramIndexer(Indexer):
                     &#34;fielddata&#34;: &#34;true&#34;,
                     &#34;analyzer&#34;: &#34;default&#34;
                 },
-                &#34;query&#34;:{
+                &#34;query&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;scale&#34;:{
+                &#34;scale&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;lonely&#34;:{
+                &#34;lonely&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 }
             }
@@ -238,9 +250,11 @@ class NgramIndexer(Indexer):
         index_name: str
             Nombre del índice con el que trabajará el indexer
     &#34;&#34;&#34;
+
     def __init__(self, connection, index_name):
         self.es = connection
         self.index_name = index_name
+        self.stats = {&#34;indexed&#34;:0, &#34;errors&#34;:0}
 
     def create_index(self):
         &#34;&#34;&#34;
@@ -288,13 +302,13 @@ class NgramIndexer(Indexer):
                 &#34;subreddit&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;query&#34;:{
+                &#34;query&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;scale&#34;:{
+                &#34;scale&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;lonely&#34;:{
+                &#34;lonely&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 }
             }
@@ -305,24 +319,32 @@ class NgramIndexer(Indexer):
 
     def index_documents(self, documents):
         &#34;&#34;&#34;
-            Indexa una lista de posts de Reddit.
+            Indexa una lista de posts de Reddit.  
+            Filtramos los campos que necesitamos
         &#34;&#34;&#34;
         toIndex = []
+        # Lista de campos que queremos conservar
+        fields = [&#34;author&#34;, &#34;category&#34;, &#34;content_categories&#34;, &#34;created_utc&#34;, &#34;domain&#34;, &#34;downs&#34;, &#34;gilded&#34;, &#34;likes&#34;,
+        &#34;name&#34;, &#34;num_comments&#34;, &#34;num_reports&#34;, &#34;over_18&#34;, &#34;permalink&#34;, &#34;post_categories&#34;, &#34;removal_reason&#34;, &#34;report_reasons&#34;,
+        &#34;retrieved_on&#34;, &#34;score&#34;, &#34;selftext&#34;, &#34;selftext_html&#34;, &#34;subreddit&#34;, &#34;subreddit_id&#34;, &#34;subreddit_type&#34;, &#34;title&#34;, 
+        &#34;ups&#34;, &#34;url&#34;, &#34;user_reports&#34;, &#34;query&#34;, &#34;scale&#34;, &#34;lonely&#34;]
 
         for document in documents:
-            ident = document[&#34;id&#34;]
+            processed_post = {
+                &#34;_index&#34;: self.index_name,
+                &#34;_type&#34;: &#34;post&#34;,
+                &#34;_id&#34;: document.get(&#34;id&#34;)
+            }
 
-            document[&#34;_index&#34;] = self.index_name
-            document[&#34;_type&#34;] = &#34;post&#34;
-            # Genera una explosión de campos en otro caso
-            document[&#34;media_metadata&#34;] = None
+            for field in fields:
+                processed_post[field] = document.get(field)
 
-            document[&#34;_id&#34;] = ident
+            toIndex.append(processed_post)
+            
+        bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(toIndex), request_timeout=200, raise_on_error=False)
+        self.stats[&#34;indexed&#34;] += bulk_stats[0]
+        self.stats[&#34;errors&#34;] += len(bulk_stats[1])
 
-            toIndex.append(document)
-
-        helpers.bulk(self.es, toIndex, chunk_size=len(
-            toIndex), request_timeout=200)
 
     def index_exists(self):
         &#34;&#34;&#34;
@@ -394,13 +416,13 @@ para poder ser utilizados en agregaciones.</p></section>
             &#34;subreddit&#34;: {
                 &#34;type&#34;: &#34;keyword&#34;
             },
-            &#34;query&#34;:{
+            &#34;query&#34;: {
                 &#34;type&#34;: &#34;keyword&#34;
             },
-            &#34;scale&#34;:{
+            &#34;scale&#34;: {
                 &#34;type&#34;: &#34;keyword&#34;
             },
-            &#34;lonely&#34;:{
+            &#34;lonely&#34;: {
                 &#34;type&#34;: &#34;keyword&#34;
             }
         }
@@ -414,31 +436,39 @@ para poder ser utilizados en agregaciones.</p></section>
 <span>def <span class="ident">index_documents</span></span>(<span>self, documents)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Indexa una lista de posts de Reddit.</p></section>
+<section class="desc"><p>Indexa una lista de posts de Reddit.<br>
+Filtramos los campos que necesitamos</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def index_documents(self, documents):
     &#34;&#34;&#34;
-        Indexa una lista de posts de Reddit.
+        Indexa una lista de posts de Reddit.  
+        Filtramos los campos que necesitamos
     &#34;&#34;&#34;
     toIndex = []
+    # Lista de campos que queremos conservar
+    fields = [&#34;author&#34;, &#34;category&#34;, &#34;content_categories&#34;, &#34;created_utc&#34;, &#34;domain&#34;, &#34;downs&#34;, &#34;gilded&#34;, &#34;likes&#34;,
+    &#34;name&#34;, &#34;num_comments&#34;, &#34;num_reports&#34;, &#34;over_18&#34;, &#34;permalink&#34;, &#34;post_categories&#34;, &#34;removal_reason&#34;, &#34;report_reasons&#34;,
+    &#34;retrieved_on&#34;, &#34;score&#34;, &#34;selftext&#34;, &#34;selftext_html&#34;, &#34;subreddit&#34;, &#34;subreddit_id&#34;, &#34;subreddit_type&#34;, &#34;title&#34;, 
+    &#34;ups&#34;, &#34;url&#34;, &#34;user_reports&#34;, &#34;query&#34;, &#34;scale&#34;, &#34;lonely&#34;]
 
     for document in documents:
-        ident = document[&#34;id&#34;]
+        processed_post = {
+            &#34;_index&#34;: self.index_name,
+            &#34;_type&#34;: &#34;post&#34;,
+            &#34;_id&#34;: document.get(&#34;id&#34;)
+        }
 
-        document[&#34;_index&#34;] = self.index_name
-        document[&#34;_type&#34;] = &#34;post&#34;
-        # Genera una explosión de campos en otro caso
-        document[&#34;media_metadata&#34;] = None
+        for field in fields:
+            processed_post[field] = document.get(field)
 
-        document[&#34;_id&#34;] = ident
-
-        toIndex.append(document)
-
-    helpers.bulk(self.es, toIndex, chunk_size=len(
-        toIndex), request_timeout=200)</code></pre>
+        toIndex.append(processed_post)
+        
+    bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(toIndex), request_timeout=200, raise_on_error=False)
+    self.stats[&#34;indexed&#34;] += bulk_stats[0]
+    self.stats[&#34;errors&#34;] += len(bulk_stats[1])</code></pre>
 </details>
 </dd>
 <dt id="elastic_indexers.Indexer.index_exists"><code class="name flex">
@@ -473,6 +503,7 @@ para poder ser utilizados en agregaciones.</p></section>
     &#34;&#34;&#34;
         Clase heredera de Indexer, implementa un índice de bigramas.
     &#34;&#34;&#34;
+
     def create_index(self):
         arguments = {
             &#34;settings&#34;: {
@@ -522,13 +553,13 @@ para poder ser utilizados en agregaciones.</p></section>
                     &#34;fielddata&#34;: &#34;true&#34;,
                     &#34;analyzer&#34;: &#34;default&#34;
                 },
-                &#34;query&#34;:{
+                &#34;query&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;scale&#34;:{
+                &#34;scale&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 },
-                &#34;lonely&#34;:{
+                &#34;lonely&#34;: {
                     &#34;type&#34;: &#34;keyword&#34;
                 }
             }
