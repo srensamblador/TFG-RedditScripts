@@ -35,6 +35,7 @@ def main(args):
 
     for filename in json_files:
         path = args.data_dir + "/" + filename
+        # Se distingue entre .json y comprimidos en .gz
         if filename.endswith(".gz"):
             f = gzip.open(path)
         else:
@@ -48,7 +49,13 @@ def main(args):
             index_block(block, indexers)
             block = f.readlines(block_size)
         
-        f.close()
+        f.close()        
+        print("- Stats:")
+        
+        # Se imprimen las estadísticas del indexado
+        for indexer in indexers:
+            print("\t*%s - Indexed: %d, Errors:%d"%(indexer.index_name, indexer.stats["indexed"], indexer.stats["errors"]))
+
         print(filename + " completado")
 
 

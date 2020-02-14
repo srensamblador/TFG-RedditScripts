@@ -69,20 +69,28 @@ def main(args):
             indexer.create_index()
 
     for filename in json_files:
+        path = args.data_dir + &#34;/&#34; + filename
+        # Se distingue entre .json y comprimidos en .gz
+        if filename.endswith(&#34;.gz&#34;):
+            f = gzip.open(path)
+        else:
+            f = open(path)
 
-        with open(args.data_dir + &#34;/&#34; + filename) as f:
-            print(&#34;Procesando &#34; + filename + &#34;...&#34;)
+        print(&#34;Procesando &#34; + filename + &#34;...&#34;)
 
-            # Si es un archivo comprimido, hay que descomprimirlo
-            if filename.endswith(&#34;.gz&#34;):
-                f = gzip.open(f)
-
-            block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
+        block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
+        block = f.readlines(block_size)
+        while block:
+            index_block(block, indexers)
             block = f.readlines(block_size)
-            while block:
-                index_block(block, indexers)
-                block = f.readlines(block_size)
-            
+        
+        f.close()        
+        print(&#34;- Stats:&#34;)
+        
+        # Se imprimen las estadísticas del indexado
+        for indexer in indexers:
+            print(&#34;\t*%s - Indexed: %d, Errors:%d&#34;%(indexer.index_name, indexer.stats[&#34;indexed&#34;], indexer.stats[&#34;errors&#34;]))
+
         print(filename + &#34; completado&#34;)
 
 
@@ -186,20 +194,28 @@ if __name__ == &#34;__main__&#34;:
             indexer.create_index()
 
     for filename in json_files:
+        path = args.data_dir + &#34;/&#34; + filename
+        # Se distingue entre .json y comprimidos en .gz
+        if filename.endswith(&#34;.gz&#34;):
+            f = gzip.open(path)
+        else:
+            f = open(path)
 
-        with open(args.data_dir + &#34;/&#34; + filename) as f:
-            print(&#34;Procesando &#34; + filename + &#34;...&#34;)
+        print(&#34;Procesando &#34; + filename + &#34;...&#34;)
 
-            # Si es un archivo comprimido, hay que descomprimirlo
-            if filename.endswith(&#34;.gz&#34;):
-                f = gzip.open(f)
-
-            block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
+        block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
+        block = f.readlines(block_size)
+        while block:
+            index_block(block, indexers)
             block = f.readlines(block_size)
-            while block:
-                index_block(block, indexers)
-                block = f.readlines(block_size)
-            
+        
+        f.close()        
+        print(&#34;- Stats:&#34;)
+        
+        # Se imprimen las estadísticas del indexado
+        for indexer in indexers:
+            print(&#34;\t*%s - Indexed: %d, Errors:%d&#34;%(indexer.index_name, indexer.stats[&#34;indexed&#34;], indexer.stats[&#34;errors&#34;]))
+
         print(filename + &#34; completado&#34;)</code></pre>
 </details>
 </dd>
