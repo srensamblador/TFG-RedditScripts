@@ -12,7 +12,7 @@
 """
 
 from elasticsearch import Elasticsearch
-from elastic_indexers import Indexer, NgramIndexer
+from src.elastic_utils.elastic_indexers import Indexer, NgramIndexer
 import json, gzip
 import os
 import argparse

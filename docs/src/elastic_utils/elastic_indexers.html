@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.4" />
-<title>elastic_indexers API documentation</title>
+<title>src.elastic_utils.elastic_indexers API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>elastic_indexers</code></h1>
+<h1 class="title">Module <code>src.elastic_utils.elastic_indexers</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -222,7 +222,7 @@ class NgramIndexer(Indexer):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="elastic_indexers.Indexer"><code class="flex name class">
+<dt id="src.elastic_utils.elastic_indexers.Indexer"><code class="flex name class">
 <span>class <span class="ident">Indexer</span></span>
 <span>(</span><span>connection, index_name)</span>
 </code></dt>
@@ -354,11 +354,11 @@ class NgramIndexer(Indexer):
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="elastic_indexers.NgramIndexer" href="#elastic_indexers.NgramIndexer">NgramIndexer</a></li>
+<li><a title="src.elastic_utils.elastic_indexers.NgramIndexer" href="#src.elastic_utils.elastic_indexers.NgramIndexer">NgramIndexer</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="elastic_indexers.Indexer.create_index"><code class="name flex">
+<dt id="src.elastic_utils.elastic_indexers.Indexer.create_index"><code class="name flex">
 <span>def <span class="ident">create_index</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -432,7 +432,7 @@ para poder ser utilizados en agregaciones.</p></section>
         index=self.index_name, doc_type=&#34;post&#34;, body=arguments,  include_type_name=True)</code></pre>
 </details>
 </dd>
-<dt id="elastic_indexers.Indexer.index_documents"><code class="name flex">
+<dt id="src.elastic_utils.elastic_indexers.Indexer.index_documents"><code class="name flex">
 <span>def <span class="ident">index_documents</span></span>(<span>self, documents)</span>
 </code></dt>
 <dd>
@@ -471,7 +471,7 @@ Filtramos los campos que necesitamos</p></section>
     self.stats[&#34;errors&#34;] += len(bulk_stats[1])</code></pre>
 </details>
 </dd>
-<dt id="elastic_indexers.Indexer.index_exists"><code class="name flex">
+<dt id="src.elastic_utils.elastic_indexers.Indexer.index_exists"><code class="name flex">
 <span>def <span class="ident">index_exists</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -489,7 +489,7 @@ Filtramos los campos que necesitamos</p></section>
 </dd>
 </dl>
 </dd>
-<dt id="elastic_indexers.NgramIndexer"><code class="flex name class">
+<dt id="src.elastic_utils.elastic_indexers.NgramIndexer"><code class="flex name class">
 <span>class <span class="ident">NgramIndexer</span></span>
 <span>(</span><span>connection, index_name)</span>
 </code></dt>
@@ -569,15 +569,15 @@ Filtramos los campos que necesitamos</p></section>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="elastic_indexers.Indexer" href="#elastic_indexers.Indexer">Indexer</a></li>
+<li><a title="src.elastic_utils.elastic_indexers.Indexer" href="#src.elastic_utils.elastic_indexers.Indexer">Indexer</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="elastic_indexers.Indexer" href="#elastic_indexers.Indexer">Indexer</a></b></code>:
+<li><code><b><a title="src.elastic_utils.elastic_indexers.Indexer" href="#src.elastic_utils.elastic_indexers.Indexer">Indexer</a></b></code>:
 <ul class="hlist">
-<li><code><a title="elastic_indexers.Indexer.create_index" href="#elastic_indexers.Indexer.create_index">create_index</a></code></li>
-<li><code><a title="elastic_indexers.Indexer.index_documents" href="#elastic_indexers.Indexer.index_documents">index_documents</a></code></li>
-<li><code><a title="elastic_indexers.Indexer.index_exists" href="#elastic_indexers.Indexer.index_exists">index_exists</a></code></li>
+<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.create_index" href="#src.elastic_utils.elastic_indexers.Indexer.create_index">create_index</a></code></li>
+<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_documents" href="#src.elastic_utils.elastic_indexers.Indexer.index_documents">index_documents</a></code></li>
+<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_exists" href="#src.elastic_utils.elastic_indexers.Indexer.index_exists">index_exists</a></code></li>
 </ul>
 </li>
 </ul>
@@ -591,18 +591,23 @@ Filtramos los campos que necesitamos</p></section>
 <ul></ul>
 </div>
 <ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src.elastic_utils" href="index.html">src.elastic_utils</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="elastic_indexers.Indexer" href="#elastic_indexers.Indexer">Indexer</a></code></h4>
+<h4><code><a title="src.elastic_utils.elastic_indexers.Indexer" href="#src.elastic_utils.elastic_indexers.Indexer">Indexer</a></code></h4>
 <ul class="">
-<li><code><a title="elastic_indexers.Indexer.create_index" href="#elastic_indexers.Indexer.create_index">create_index</a></code></li>
-<li><code><a title="elastic_indexers.Indexer.index_documents" href="#elastic_indexers.Indexer.index_documents">index_documents</a></code></li>
-<li><code><a title="elastic_indexers.Indexer.index_exists" href="#elastic_indexers.Indexer.index_exists">index_exists</a></code></li>
+<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.create_index" href="#src.elastic_utils.elastic_indexers.Indexer.create_index">create_index</a></code></li>
+<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_documents" href="#src.elastic_utils.elastic_indexers.Indexer.index_documents">index_documents</a></code></li>
+<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_exists" href="#src.elastic_utils.elastic_indexers.Indexer.index_exists">index_exists</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="elastic_indexers.NgramIndexer" href="#elastic_indexers.NgramIndexer">NgramIndexer</a></code></h4>
+<h4><code><a title="src.elastic_utils.elastic_indexers.NgramIndexer" href="#src.elastic_utils.elastic_indexers.NgramIndexer">NgramIndexer</a></code></h4>
 </li>
 </ul>
 </li>

@@ -17,6 +17,9 @@
 from elasticsearch import Elasticsearch
 import argparse
 from datetime import datetime, timedelta
+import progressbar as pb
+import math
+
 
 __author__ = "Samuel Cifuentes García"
 
@@ -31,13 +34,18 @@ def main(args):
     print("Procesando documentos...")
     submissions_per_hour = []
     after_date = dates[1]
+    
+    # Barra de progreso
+    bar = pb.ProgressBar(max_value=100, widgets = [
+        "- ", pb.Percentage(), " ", pb.Bar(), " ", pb.Timer(), " ", pb.AdaptiveETA()
+    ])
     while after_date > dates[0]:
         # Para cada intervalo de una hora se obtiene el número de posts
         before_date = after_date - timedelta(hours=1)
         
-        # Cada vez que se complete un año se muestra por consola para tener feedback
-        if before_date.day == 1 and before_date.month == 1 and before_date.hour == 0:
-            print(before_date)
+        # Actualizo la barra de progreso
+        bar.update(math.ceil((dates[1].timestamp() - before_date.timestamp()) 
+        / (dates[1].timestamp() - dates[0].timestamp()) * 100))
 
         count = get_submission_count(before_date.timestamp(), after_date.timestamp(), args.index)
         # Si un intervalo no tiene post no se incluye
@@ -45,6 +53,9 @@ def main(args):
             submissions_per_hour.append((before_date.timestamp(), after_date.timestamp(), count))
 
         after_date = before_date
+    bar.finish()
+    
+    print("Total documentos: ", sum([x[2] for x in submissions_per_hour]))
     
     # Guardamos los resultaods en el archivo especificado
     print("Serializando en " + args.output + "...")
@@ -129,7 +140,7 @@ def get_submission_count(before_timestamp, after_timestamp, index):
         "query": {
             "range": {
                 "created_utc": {
-                    "gte": before_timestamp,
+                    "gt": before_timestamp,
                     "lte": after_timestamp
                 }
             }

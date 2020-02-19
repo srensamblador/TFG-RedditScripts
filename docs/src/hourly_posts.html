@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.4" />
-<title>hourly_posts API documentation</title>
+<title>src.hourly_posts API documentation</title>
 <meta name="description" content="Script para obtener el número de post por hora en el índice de Elasticsearch
 Sobre un índice de Elasticsearch especificado, se obtiene el número de …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -18,7 +18,7 @@ Sobre un índice de Elasticsearch especificado, se obtiene el número de …" />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>hourly_posts</code></h1>
+<h1 class="title">Module <code>src.hourly_posts</code></h1>
 </header>
 <section id="section-intro">
 <h2 id="script-para-obtener-el-numero-de-post-por-hora-en-el-indice-de-elasticsearch">Script para obtener el número de post por hora en el índice de Elasticsearch</h2>
@@ -55,6 +55,9 @@ La lista de datos resultante se serializa en un fichero con el siguiente formato
 from elasticsearch import Elasticsearch
 import argparse
 from datetime import datetime, timedelta
+import progressbar as pb
+import math
+
 
 __author__ = &#34;Samuel Cifuentes García&#34;
 
@@ -69,13 +72,18 @@ def main(args):
     print(&#34;Procesando documentos...&#34;)
     submissions_per_hour = []
     after_date = dates[1]
+    
+    # Barra de progreso
+    bar = pb.ProgressBar(max_value=100, widgets = [
+        &#34;- &#34;, pb.Percentage(), &#34; &#34;, pb.Bar(), &#34; &#34;, pb.Timer(), &#34; &#34;, pb.AdaptiveETA()
+    ])
     while after_date &gt; dates[0]:
         # Para cada intervalo de una hora se obtiene el número de posts
         before_date = after_date - timedelta(hours=1)
         
-        # Cada vez que se complete un año se muestra por consola para tener feedback
-        if before_date.day == 1 and before_date.month == 1 and before_date.hour == 0:
-            print(before_date)
+        # Actualizo la barra de progreso
+        bar.update(math.ceil((dates[1].timestamp() - before_date.timestamp()) 
+        / (dates[1].timestamp() - dates[0].timestamp()) * 100))
 
         count = get_submission_count(before_date.timestamp(), after_date.timestamp(), args.index)
         # Si un intervalo no tiene post no se incluye
@@ -83,6 +91,9 @@ def main(args):
             submissions_per_hour.append((before_date.timestamp(), after_date.timestamp(), count))
 
         after_date = before_date
+    bar.finish()
+    
+    print(&#34;Total documentos: &#34;, sum([x[2] for x in submissions_per_hour]))
     
     # Guardamos los resultaods en el archivo especificado
     print(&#34;Serializando en &#34; + args.output + &#34;...&#34;)
@@ -167,7 +178,7 @@ def get_submission_count(before_timestamp, after_timestamp, index):
         &#34;query&#34;: {
             &#34;range&#34;: {
                 &#34;created_utc&#34;: {
-                    &#34;gte&#34;: before_timestamp,
+                    &#34;gt&#34;: before_timestamp,
                     &#34;lte&#34;: after_timestamp
                 }
             }
@@ -224,7 +235,7 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="hourly_posts.get_boundary_dates"><code class="name flex">
+<dt id="src.hourly_posts.get_boundary_dates"><code class="name flex">
 <span>def <span class="ident">get_boundary_dates</span></span>(<span>index)</span>
 </code></dt>
 <dd>
@@ -300,7 +311,7 @@ documentos.</p>
     return oldest_date, newest_date</code></pre>
 </details>
 </dd>
-<dt id="hourly_posts.get_submission_count"><code class="name flex">
+<dt id="src.hourly_posts.get_submission_count"><code class="name flex">
 <span>def <span class="ident">get_submission_count</span></span>(<span>before_timestamp, after_timestamp, index)</span>
 </code></dt>
 <dd>
@@ -349,7 +360,7 @@ ya que es más eficiente que contar el número de hits en una consulta Search</p
         &#34;query&#34;: {
             &#34;range&#34;: {
                 &#34;created_utc&#34;: {
-                    &#34;gte&#34;: before_timestamp,
+                    &#34;gt&#34;: before_timestamp,
                     &#34;lte&#34;: after_timestamp
                 }
             }
@@ -363,7 +374,7 @@ ya que es más eficiente que contar el número de hits en una consulta Search</p
     return res[&#34;count&#34;]</code></pre>
 </details>
 </dd>
-<dt id="hourly_posts.main"><code class="name flex">
+<dt id="src.hourly_posts.main"><code class="name flex">
 <span>def <span class="ident">main</span></span>(<span>args)</span>
 </code></dt>
 <dd>
@@ -383,13 +394,18 @@ ya que es más eficiente que contar el número de hits en una consulta Search</p
     print(&#34;Procesando documentos...&#34;)
     submissions_per_hour = []
     after_date = dates[1]
+    
+    # Barra de progreso
+    bar = pb.ProgressBar(max_value=100, widgets = [
+        &#34;- &#34;, pb.Percentage(), &#34; &#34;, pb.Bar(), &#34; &#34;, pb.Timer(), &#34; &#34;, pb.AdaptiveETA()
+    ])
     while after_date &gt; dates[0]:
         # Para cada intervalo de una hora se obtiene el número de posts
         before_date = after_date - timedelta(hours=1)
         
-        # Cada vez que se complete un año se muestra por consola para tener feedback
-        if before_date.day == 1 and before_date.month == 1 and before_date.hour == 0:
-            print(before_date)
+        # Actualizo la barra de progreso
+        bar.update(math.ceil((dates[1].timestamp() - before_date.timestamp()) 
+        / (dates[1].timestamp() - dates[0].timestamp()) * 100))
 
         count = get_submission_count(before_date.timestamp(), after_date.timestamp(), args.index)
         # Si un intervalo no tiene post no se incluye
@@ -397,6 +413,9 @@ ya que es más eficiente que contar el número de hits en una consulta Search</p
             submissions_per_hour.append((before_date.timestamp(), after_date.timestamp(), count))
 
         after_date = before_date
+    bar.finish()
+    
+    print(&#34;Total documentos: &#34;, sum([x[2] for x in submissions_per_hour]))
     
     # Guardamos los resultaods en el archivo especificado
     print(&#34;Serializando en &#34; + args.output + &#34;...&#34;)
@@ -405,7 +424,7 @@ ya que es más eficiente que contar el número de hits en una consulta Search</p
     print(&#34;Completado&#34;)</code></pre>
 </details>
 </dd>
-<dt id="hourly_posts.parse_args"><code class="name flex">
+<dt id="src.hourly_posts.parse_args"><code class="name flex">
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -429,7 +448,7 @@ ya que es más eficiente que contar el número de hits en una consulta Search</p
     return parser.parse_args()</code></pre>
 </details>
 </dd>
-<dt id="hourly_posts.write_to_csv"><code class="name flex">
+<dt id="src.hourly_posts.write_to_csv"><code class="name flex">
 <span>def <span class="ident">write_to_csv</span></span>(<span>filename, submissions)</span>
 </code></dt>
 <dd>
@@ -480,13 +499,18 @@ donde se serializarán los datos</dd>
 </ul>
 </div>
 <ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src" href="index.html">src</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="hourly_posts.get_boundary_dates" href="#hourly_posts.get_boundary_dates">get_boundary_dates</a></code></li>
-<li><code><a title="hourly_posts.get_submission_count" href="#hourly_posts.get_submission_count">get_submission_count</a></code></li>
-<li><code><a title="hourly_posts.main" href="#hourly_posts.main">main</a></code></li>
-<li><code><a title="hourly_posts.parse_args" href="#hourly_posts.parse_args">parse_args</a></code></li>
-<li><code><a title="hourly_posts.write_to_csv" href="#hourly_posts.write_to_csv">write_to_csv</a></code></li>
+<li><code><a title="src.hourly_posts.get_boundary_dates" href="#src.hourly_posts.get_boundary_dates">get_boundary_dates</a></code></li>
+<li><code><a title="src.hourly_posts.get_submission_count" href="#src.hourly_posts.get_submission_count">get_submission_count</a></code></li>
+<li><code><a title="src.hourly_posts.main" href="#src.hourly_posts.main">main</a></code></li>
+<li><code><a title="src.hourly_posts.parse_args" href="#src.hourly_posts.parse_args">parse_args</a></code></li>
+<li><code><a title="src.hourly_posts.write_to_csv" href="#src.hourly_posts.write_to_csv">write_to_csv</a></code></li>
 </ul>
 </li>
 </ul>

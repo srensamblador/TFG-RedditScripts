@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.4" />
-<title>index_from_backup API documentation</title>
+<title>src.index_from_backup API documentation</title>
 <meta name="description" content="Script para indexar documentos en Elastic a partir de ficheros .json de backup
 El script procesa los ficheros .json (incluido comprimidos en .gz) …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -18,7 +18,7 @@ El script procesa los ficheros .json (incluido comprimidos en .gz) …" />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>index_from_backup</code></h1>
+<h1 class="title">Module <code>src.index_from_backup</code></h1>
 </header>
 <section id="section-intro">
 <h2 id="script-para-indexar-documentos-en-elastic-a-partir-de-ficheros-json-de-backup">Script para indexar documentos en Elastic a partir de ficheros .json de backup</h2>
@@ -47,7 +47,7 @@ El script procesa los ficheros .json (incluido comprimidos en .gz) …" />
 &#34;&#34;&#34;
 
 from elasticsearch import Elasticsearch
-from elastic_indexers import Indexer, NgramIndexer
+from src.elastic_utils.elastic_indexers import Indexer, NgramIndexer
 import json, gzip
 import os
 import argparse
@@ -134,7 +134,7 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="index_from_backup.index_block"><code class="name flex">
+<dt id="src.index_from_backup.index_block"><code class="name flex">
 <span>def <span class="ident">index_block</span></span>(<span>block, indexers)</span>
 </code></dt>
 <dd>
@@ -170,7 +170,7 @@ if __name__ == &#34;__main__&#34;:
         indexer.index_documents(data)</code></pre>
 </details>
 </dd>
-<dt id="index_from_backup.main"><code class="name flex">
+<dt id="src.index_from_backup.main"><code class="name flex">
 <span>def <span class="ident">main</span></span>(<span>args)</span>
 </code></dt>
 <dd>
@@ -219,7 +219,7 @@ if __name__ == &#34;__main__&#34;:
         print(filename + &#34; completado&#34;)</code></pre>
 </details>
 </dd>
-<dt id="index_from_backup.parse_args"><code class="name flex">
+<dt id="src.index_from_backup.parse_args"><code class="name flex">
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -252,11 +252,16 @@ if __name__ == &#34;__main__&#34;:
 </ul>
 </div>
 <ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src" href="index.html">src</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="index_from_backup.index_block" href="#index_from_backup.index_block">index_block</a></code></li>
-<li><code><a title="index_from_backup.main" href="#index_from_backup.main">main</a></code></li>
-<li><code><a title="index_from_backup.parse_args" href="#index_from_backup.parse_args">parse_args</a></code></li>
+<li><code><a title="src.index_from_backup.index_block" href="#src.index_from_backup.index_block">index_block</a></code></li>
+<li><code><a title="src.index_from_backup.main" href="#src.index_from_backup.main">main</a></code></li>
+<li><code><a title="src.index_from_backup.parse_args" href="#src.index_from_backup.parse_args">parse_args</a></code></li>
 </ul>
 </li>
 </ul>

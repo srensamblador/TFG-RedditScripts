@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.4" />
-<title>posts_from_scales API documentation</title>
+<title>src.posts_from_scales API documentation</title>
 <meta name="description" content="Script para la extracción e indexado de posts de Reddit relevantes a items de escalas psicométricas
 …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -18,7 +18,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>posts_from_scales</code></h1>
+<h1 class="title">Module <code>src.posts_from_scales</code></h1>
 </header>
 <section id="section-intro">
 <h2 id="script-para-la-extraccion-e-indexado-de-posts-de-reddit-relevantes-a-items-de-escalas-psicometricas">Script para la extracción e indexado de posts de Reddit relevantes a items de escalas psicométricas</h2>
@@ -79,11 +79,11 @@ Frase 3;Escala 3
 
 from psaw import PushshiftAPI
 import argparse
-import datetime
+from  datetime import datetime
 import json
 import os
 from elasticsearch import Elasticsearch
-from elastic_indexers import Indexer, NgramIndexer
+from src.elastic_utils.elastic_indexers import Indexer, NgramIndexer
 
 __author__ = &#34;Samuel Cifuentes García&#34;
 
@@ -152,12 +152,8 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
     gen = api.search_submissions(q=query, before=before_timestamp)
     cache = []
     
-    numIter = 0 #TODO delete
+    numIter = 0 
     for c in gen:
-        # TODO delete
-        if numIter &gt;5:
-            break
-
         c.d_[&#34;query&#34;] = query
         c.d_[&#34;scale&#34;] = scale
         c.d_[&#34;lonely&#34;] = True        
@@ -168,11 +164,10 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
             dump_to_file(cache)
             elastic_index(cache, query, scale)
             
-            print(&#34; *&#34;, datetime.datetime.fromtimestamp(cache[-1][&#34;created_utc&#34;]).strftime(&#34;%Y-%m-%d&#34;))
+            print(&#34; *&#34;, datetime.fromtimestamp(cache[-1][&#34;created_utc&#34;]).strftime(&#34;%Y-%m-%d&#34;))
 
             cache = []
 
-            # TODO delete
             numIter += 1
         
     dump_to_file(cache)
@@ -241,7 +236,7 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="posts_from_scales.dump_to_file"><code class="name flex">
+<dt id="src.posts_from_scales.dump_to_file"><code class="name flex">
 <span>def <span class="ident">dump_to_file</span></span>(<span>results)</span>
 </code></dt>
 <dd>
@@ -273,7 +268,7 @@ Las escrituras son mucho más rápidas si se tratan como strings en vez de objet
             f.write(json.dumps(result) + &#34;\n&#34;)</code></pre>
 </details>
 </dd>
-<dt id="posts_from_scales.elastic_index"><code class="name flex">
+<dt id="src.posts_from_scales.elastic_index"><code class="name flex">
 <span>def <span class="ident">elastic_index</span></span>(<span>results, query, scale)</span>
 </code></dt>
 <dd>
@@ -319,7 +314,7 @@ un booleano para marcarlos como positivos en soledad.</p>
         indexer.index_documents(results)</code></pre>
 </details>
 </dd>
-<dt id="posts_from_scales.load_queries"><code class="name flex">
+<dt id="src.posts_from_scales.load_queries"><code class="name flex">
 <span>def <span class="ident">load_queries</span></span>(<span>filename)</span>
 </code></dt>
 <dd>
@@ -353,7 +348,7 @@ un booleano para marcarlos como positivos en soledad.</p>
     return queries</code></pre>
 </details>
 </dd>
-<dt id="posts_from_scales.main"><code class="name flex">
+<dt id="src.posts_from_scales.main"><code class="name flex">
 <span>def <span class="ident">main</span></span>(<span>args)</span>
 </code></dt>
 <dd>
@@ -389,7 +384,7 @@ un booleano para marcarlos como positivos en soledad.</p>
         print(&#34;Frase completada: \&#34;&#34;+ query + &#34;\&#34;&#34;)</code></pre>
 </details>
 </dd>
-<dt id="posts_from_scales.parse_args"><code class="name flex">
+<dt id="src.posts_from_scales.parse_args"><code class="name flex">
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -412,7 +407,7 @@ un booleano para marcarlos como positivos en soledad.</p>
     return parser.parse_args()</code></pre>
 </details>
 </dd>
-<dt id="posts_from_scales.query_API"><code class="name flex">
+<dt id="src.posts_from_scales.query_API"><code class="name flex">
 <span>def <span class="ident">query_API</span></span>(<span>query, scale, before_timestamp, cache_size=3000)</span>
 </code></dt>
 <dd>
@@ -454,12 +449,8 @@ un booleano para indicar que el post dio positivo en una escala.</p>
     gen = api.search_submissions(q=query, before=before_timestamp)
     cache = []
     
-    numIter = 0 #TODO delete
+    numIter = 0 
     for c in gen:
-        # TODO delete
-        if numIter &gt;5:
-            break
-
         c.d_[&#34;query&#34;] = query
         c.d_[&#34;scale&#34;] = scale
         c.d_[&#34;lonely&#34;] = True        
@@ -470,11 +461,10 @@ un booleano para indicar que el post dio positivo en una escala.</p>
             dump_to_file(cache)
             elastic_index(cache, query, scale)
             
-            print(&#34; *&#34;, datetime.datetime.fromtimestamp(cache[-1][&#34;created_utc&#34;]).strftime(&#34;%Y-%m-%d&#34;))
+            print(&#34; *&#34;, datetime.fromtimestamp(cache[-1][&#34;created_utc&#34;]).strftime(&#34;%Y-%m-%d&#34;))
 
             cache = []
 
-            # TODO delete
             numIter += 1
         
     dump_to_file(cache)
@@ -495,14 +485,19 @@ un booleano para indicar que el post dio positivo en una escala.</p>
 </ul>
 </div>
 <ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src" href="index.html">src</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
-<li><code><a title="posts_from_scales.dump_to_file" href="#posts_from_scales.dump_to_file">dump_to_file</a></code></li>
-<li><code><a title="posts_from_scales.elastic_index" href="#posts_from_scales.elastic_index">elastic_index</a></code></li>
-<li><code><a title="posts_from_scales.load_queries" href="#posts_from_scales.load_queries">load_queries</a></code></li>
-<li><code><a title="posts_from_scales.main" href="#posts_from_scales.main">main</a></code></li>
-<li><code><a title="posts_from_scales.parse_args" href="#posts_from_scales.parse_args">parse_args</a></code></li>
-<li><code><a title="posts_from_scales.query_API" href="#posts_from_scales.query_API">query_API</a></code></li>
+<li><code><a title="src.posts_from_scales.dump_to_file" href="#src.posts_from_scales.dump_to_file">dump_to_file</a></code></li>
+<li><code><a title="src.posts_from_scales.elastic_index" href="#src.posts_from_scales.elastic_index">elastic_index</a></code></li>
+<li><code><a title="src.posts_from_scales.load_queries" href="#src.posts_from_scales.load_queries">load_queries</a></code></li>
+<li><code><a title="src.posts_from_scales.main" href="#src.posts_from_scales.main">main</a></code></li>
+<li><code><a title="src.posts_from_scales.parse_args" href="#src.posts_from_scales.parse_args">parse_args</a></code></li>
+<li><code><a title="src.posts_from_scales.query_API" href="#src.posts_from_scales.query_API">query_API</a></code></li>
 </ul>
 </li>
 </ul>

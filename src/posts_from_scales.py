@@ -34,7 +34,7 @@ from  datetime import datetime
 import json
 import os
 from elasticsearch import Elasticsearch
-from elastic_indexers import Indexer, NgramIndexer
+from src.elastic_utils.elastic_indexers import Indexer, NgramIndexer
 
 __author__ = "Samuel Cifuentes García"
 
