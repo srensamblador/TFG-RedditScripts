@@ -87,8 +87,9 @@ def query_api(submissions_per_hour, cache_size=3000):
     # Barra de progreso para dar feedback
     bar = pb.ProgressBar(max_value=len(submissions_per_hour))
     for interval in bar(submissions_per_hour):
-        gen = api.search_submissions(before=interval[0], after=interval[1], limit=interval[2])
-
+        print(interval)
+        gen = api.search_submissions(after=int(float(interval[0])), before=int(float(interval[1])), limit=int(interval[2]))
+        print(list(gen))
         for c in gen:
             # Establecemos estos campos para identificar los post como aleatorios
             c.d_["query"] = ""
