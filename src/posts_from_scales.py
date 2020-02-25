@@ -30,11 +30,12 @@
 
 from psaw import PushshiftAPI
 import argparse
-from  datetime import datetime
+import datetime
 import json
 import os
 from elasticsearch import Elasticsearch
 from src.elastic_utils.elastic_indexers import Indexer, NgramIndexer
+import progressbar as pb
 
 __author__ = "Samuel Cifuentes García"
 
@@ -58,11 +59,11 @@ def main(args):
         # Crea el .json de backup donde se volcarán los post
         global dump_filename
         dump_filename = args.dump_dir + "/" + query.replace(" " ,"") + "-Dump.json"
-        print("Procesando frase: \"" + query + "\"...")
+        print("\nProcesando frase: \"" + query + "\"...")
 
-        query_API(query, scale, args.before, cache_size=100)
+        query_API(query, scale, args.before)
 
-        print("Frase completada: \""+ query + "\"")
+        print("\nFrase completada: \""+ query + "\"")
 
 def load_queries(filename):
     """
@@ -100,26 +101,30 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
         start_date: Date
 
     """
-    gen = api.search_submissions(q=query, before=before_timestamp)
+    gen = api.search_submissions(q=query, before=before_timestamp) # Todos los post antes de la fecha indicada
     cache = []
     
-    numIter = 0 
+    # Barra de progreso
+    numIter = 0
+    bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
+        "- ", pb.AnimatedMarker(), " ", pb.Counter(), " ", pb.Timer()
+    ])
     for c in gen:
         c.d_["query"] = query
         c.d_["scale"] = scale
         c.d_["lonely"] = True        
         cache.append(c.d_)
 
-        if len(cache) == cache_size:
-            
+        if len(cache) == cache_size:      
             dump_to_file(cache)
             elastic_index(cache, query, scale)
             
-            print(" *", datetime.fromtimestamp(cache[-1]["created_utc"]).strftime("%Y-%m-%d"))
-
             cache = []
 
             numIter += 1
+            bar.update(numIter)
+    bar.finish()
+
         
     dump_to_file(cache)
     elastic_index(cache, query, scale)

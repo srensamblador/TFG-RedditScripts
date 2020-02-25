@@ -8,8 +8,8 @@
 
     Parámetros
     ----------
-    * -s, --source: fichero .csv con los intervalos de tiempo y el número de post en cada uno. Por defecto, "hourly_posts.csv"
-    * -d, --dump-dir: directorio donde se volcarán los ficheros de backup. Por defecto, "dumps"
+    * -s, --source: fichero .csv con los intervalos de tiempo y el número de post en cada uno. Por defecto, `hourly_posts.csv`
+    * -o, --output: fichero donde se volcarán los post. Por defecto, `randombaselineDump.json`
     * -e, --elasticsearch: dirección del servidor elastic contra el que indexar. Por defecto, http://localhost:9200
 """
 
@@ -30,11 +30,8 @@ def main(args):
     es = Elasticsearch(args.elasticsearch)
 
     # Crea un directorio para los volcados si no existe
-    global dump_dir
-    dump_dir = args.dump_dir
-
-    if not os.path.exists(dump_dir):
-        os.makedirs(dump_dir)
+    global output_file
+    output_file = args.output
 
     query_api(load_csv(args.source))
 
@@ -87,9 +84,7 @@ def query_api(submissions_per_hour, cache_size=3000):
     # Barra de progreso para dar feedback
     bar = pb.ProgressBar(max_value=len(submissions_per_hour))
     for interval in bar(submissions_per_hour):
-        print(interval)
         gen = api.search_submissions(after=int(float(interval[0])), before=int(float(interval[1])), limit=int(interval[2]))
-        print(list(gen))
         for c in gen:
             # Establecemos estos campos para identificar los post como aleatorios
             c.d_["query"] = ""
@@ -97,11 +92,14 @@ def query_api(submissions_per_hour, cache_size=3000):
             c.d_["lonely"] = False
             cache.append(c.d_)
 
-            if len(cache) == cache_size:                
+            if len(cache) >= cache_size:                
                 dump_to_file(cache)
                 elastic_index(cache)
 
                 cache = []
+
+            dump_to_file(cache)
+            elastic_index(cache)
 
 def dump_to_file(results):
     """
@@ -114,7 +112,7 @@ def dump_to_file(results):
         results: list
             Lista de documentos a volcar   
     """
-    with open(dump_dir + "/randombaselineDump.json", "a") as f:
+    with open(output_file, "a") as f:
         for result in results:
             f.write(json.dumps(result) + "\n")
 
@@ -144,7 +142,7 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(description="Script para la extracción de submissions de Reddit a través de pushshift.io")
     parser.add_argument("-s", "--source", default="hourly_posts.csv", help="Fichero con la lista de post por intervarlo de tiempo.")
-    parser.add_argument("-d", "--dump-dir", default="dumps", help="Directorio donde se volcarán los archivos .json de backup")
+    parser.add_argument("-o", "--output", default="randombaselineDump.json", help="Fichero donde se volcarán los post")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="dirección del servidor Elasticsearch contra el que se indexará")
     return parser.parse_args()
 

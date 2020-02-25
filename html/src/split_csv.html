@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.4" />
-<title>src API documentation</title>
+<title>src.split_csv API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,50 +17,61 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src</code></h1>
+<h1 class="title">Module <code>src.split_csv</code></h1>
 </header>
 <section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import csv
+
+def write_to_csv(lines, index):
+    with open(&#34;splitted_csv/hourly_posts_&#34; + str(index) + &#34;.csv&#34;, &#34;w&#34;) as f:
+                    for tuple in cache:
+                        f.write(&#34;;&#34;.join([str(x) for x in tuple]) + &#34;\n&#34;)
+
+with open(&#34;hourly_posts.csv&#34;) as file:
+    csv_file = csv.reader(file, delimiter=&#34;;&#34;)
+    cache = []
+    num_docs = 0
+    index = 0
+
+    for line in csv_file:
+        cache.append(line)
+        num_docs += int(line[2])
+        if num_docs &gt; 250000:
+            write_to_csv(cache, index)
+            cache = []
+            num_docs = 0
+            index +=1
+
+    write_to_csv(cache, index)</code></pre>
+</details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="src.elastic_utils" href="elastic_utils/index.html">src.elastic_utils</a></code></dt>
+<dt id="src.split_csv.write_to_csv"><code class="name flex">
+<span>def <span class="ident">write_to_csv</span></span>(<span>lines, index)</span>
+</code></dt>
 <dd>
 <section class="desc"></section>
-</dd>
-<dt><code class="name"><a title="src.get_random_posts" href="get_random_posts.html">src.get_random_posts</a></code></dt>
-<dd>
-<section class="desc"><p>Script que obtiene e indexa posts aleatorios de Reddit</p>
-<p>A partir de un fichero .csv que contiene intervalos de tiempo y un número de post para cada …</p></section>
-</dd>
-<dt><code class="name"><a title="src.get_subs" href="get_subs.html">src.get_subs</a></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt><code class="name"><a title="src.hourly_posts" href="hourly_posts.html">src.hourly_posts</a></code></dt>
-<dd>
-<section class="desc"><p>Script para obtener el número de post por hora en el índice de Elasticsearch</p>
-<p>Sobre un índice de Elasticsearch especificado, se obtiene el número de …</p></section>
-</dd>
-<dt><code class="name"><a title="src.index_from_backup" href="index_from_backup.html">src.index_from_backup</a></code></dt>
-<dd>
-<section class="desc"><p>Script para indexar documentos en Elastic a partir de ficheros .json de backup</p>
-<p>El script procesa los ficheros .json (incluido comprimidos en .gz) …</p></section>
-</dd>
-<dt><code class="name"><a title="src.posts_from_scales" href="posts_from_scales.html">src.posts_from_scales</a></code></dt>
-<dd>
-<section class="desc"><p>Script para la extracción e indexado de posts de Reddit relevantes a items de escalas psicométricas
-…</p></section>
-</dd>
-<dt><code class="name"><a title="src.split_csv" href="split_csv.html">src.split_csv</a></code></dt>
-<dd>
-<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_to_csv(lines, index):
+    with open(&#34;splitted_csv/hourly_posts_&#34; + str(index) + &#34;.csv&#34;, &#34;w&#34;) as f:
+                    for tuple in cache:
+                        f.write(&#34;;&#34;.join([str(x) for x in tuple]) + &#34;\n&#34;)</code></pre>
+</details>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -71,15 +82,14 @@
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.elastic_utils" href="elastic_utils/index.html">src.elastic_utils</a></code></li>
-<li><code><a title="src.get_random_posts" href="get_random_posts.html">src.get_random_posts</a></code></li>
-<li><code><a title="src.get_subs" href="get_subs.html">src.get_subs</a></code></li>
-<li><code><a title="src.hourly_posts" href="hourly_posts.html">src.hourly_posts</a></code></li>
-<li><code><a title="src.index_from_backup" href="index_from_backup.html">src.index_from_backup</a></code></li>
-<li><code><a title="src.posts_from_scales" href="posts_from_scales.html">src.posts_from_scales</a></code></li>
-<li><code><a title="src.split_csv" href="split_csv.html">src.split_csv</a></code></li>
+<li><code><a title="src" href="index.html">src</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="src.split_csv.write_to_csv" href="#src.split_csv.write_to_csv">write_to_csv</a></code></li>
 </ul>
 </li>
 </ul>

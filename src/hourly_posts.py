@@ -23,46 +23,52 @@ import math
 
 __author__ = "Samuel Cifuentes García"
 
+
 def main(args):
     # Conexión a Elastic
     global es
     es = Elasticsearch(args.elasticsearch)
-    
+
     # Se obtienen las fechas límite
     dates = get_boundary_dates(args.index)
 
     print("Procesando documentos...")
     submissions_per_hour = []
     after_date = dates[1]
-    
+
     # Barra de progreso
-    bar = pb.ProgressBar(max_value=100, widgets = [
+    bar = pb.ProgressBar(max_value=100, widgets=[
         "- ", pb.Percentage(), " ", pb.Bar(), " ", pb.Timer(), " ", pb.AdaptiveETA()
     ])
     while after_date > dates[0]:
         # Para cada intervalo de una hora se obtiene el número de posts
         before_date = after_date - timedelta(hours=1)
-        
-        # Actualizo la barra de progreso
-        bar.update(math.ceil((dates[1].timestamp() - before_date.timestamp()) 
-        / (dates[1].timestamp() - dates[0].timestamp()) * 100))
 
-        count = get_submission_count(before_date.timestamp(), after_date.timestamp(), args.index)
+        # Actualizo la barra de progreso
+        bar.update(math.ceil((dates[1].timestamp() - before_date.timestamp())
+                             / (dates[1].timestamp() - dates[0].timestamp()) * 100))
+
+        lonely_count = get_submission_count(
+            before_date.timestamp(), after_date.timestamp(), args.index, True)
+        random_count = get_submission_count(
+            before_date.timestamp(), after_date.timestamp(), args.index, False)
         # Si un intervalo no tiene post no se incluye
-        if count > 0:
-            submissions_per_hour.append((before_date.timestamp(), after_date.timestamp(), count))
+        if lonely_count > 0:
+            submissions_per_hour.append(
+                (before_date.timestamp(), after_date.timestamp(), lonely_count, random_count))
 
         after_date = before_date
     bar.finish()
-    
+
     print("Total documentos: ", sum([x[2] for x in submissions_per_hour]))
-    
+
     # Guardamos los resultaods en el archivo especificado
     print("Serializando en " + args.output + "...")
     write_to_csv(args.output, submissions_per_hour)
 
     print("Completado")
-        
+
+
 def get_boundary_dates(index):
     """
         Obtiene la fecha más reciente y la más antigua presente en el índice. 
@@ -116,7 +122,7 @@ def get_boundary_dates(index):
     return oldest_date, newest_date
 
 
-def get_submission_count(before_timestamp, after_timestamp, index):
+def get_submission_count(before_timestamp, after_timestamp, index, is_lonely):
     """
         Recupera el número de documentos en un índice en el intervalo de tiempo especificado.
         Se utiliza la API Count: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-count.html,
@@ -138,20 +144,32 @@ def get_submission_count(before_timestamp, after_timestamp, index):
     """
     query = {
         "query": {
-            "range": {
-                "created_utc": {
-                    "gt": before_timestamp,
-                    "lte": after_timestamp
-                }
+            "bool": {
+                "must": [
+                    {
+                        "range": {
+                            "created_utc": {
+                                "gt": before_timestamp,
+                                "lte": after_timestamp
+                            }
+                        }
+                    },
+                    {
+                        "term": {
+                            "lonely": is_lonely
+                        }
+                    }
+                ]
             }
         }
     }
-     
+
     res = es.count(
         index=index,
         body=query
     )
     return res["count"]
+
 
 def write_to_csv(filename, submissions):
     """
@@ -168,7 +186,7 @@ def write_to_csv(filename, submissions):
     """
     with open(filename, "w") as f:
         for tuple in submissions:
-            f.write(";".join([str(x) for x in tuple]) + "\n")
+            f.write(";".join([str(int(x)) for x in tuple]) + "\n")
 
 
 def parse_args():
@@ -180,7 +198,7 @@ def parse_args():
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200",
                         help="dirección del servidor Elasticsearch")
     parser.add_argument("-i", "--index", default="reddit-loneliness",
-                        help="nombre del índice a procesar")                        
+                        help="nombre del índice a procesar")
     parser.add_argument("-o", "--output", default="hourly_posts.csv",
                         help="Archivo donde se almacenarán los resultados")
     return parser.parse_args()

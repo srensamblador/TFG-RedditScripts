@@ -16,6 +16,7 @@ from src.elastic_utils.elastic_indexers import Indexer, NgramIndexer
 import json, gzip
 import os
 import argparse
+import progressbar as pb
 
 __author__="Samuel Cifuentes García"
 
@@ -45,9 +46,22 @@ def main(args):
 
         block_size = 8*1024*1024 # Se procesará el fichero en bloques de 8 Mb
         block = f.readlines(block_size)
+
+        # Barra de progreso
+        file_size = os.path.getsize(path)
+        indexed_size = 0
+        bar = pb.ProgressBar(max_value = file_size, widgets = [
+            "- ", pb.Percentage(), " ", pb.Bar(), " ", pb.Timer(), " ", pb.AdaptiveETA()
+        ])
+
         while block:
             index_block(block, indexers)
             block = f.readlines(block_size)
+
+            indexed_size += block_size
+            bar.update(min(indexed_size, file_size))
+
+        bar.finish()
         
         f.close()        
         print("- Stats:")
