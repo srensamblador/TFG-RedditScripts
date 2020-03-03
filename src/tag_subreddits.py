@@ -12,16 +12,51 @@
     -o, --output: fichero donde se almacenarán los resultados
     -n, --num-members: número de miembros que sirve de umbral para el marcado
 """
-from psaw import PushshiftAPI
 import argparse
 import json
 import os
 from elasticsearch import Elasticsearch
+import requests
+import time
 
 __author__ = "Samuel Cifuentes García"
 
 def main(args):
-    pass
+    raw_subreddits = load_subreddits(args.source)
+
+    tagged_subreddits = tag_subreddits(raw_subreddits, args.num_members)
+
+    for t in tagged_subreddits:
+        print(t)
+
+def tag_subreddits(subreddits, threshold):
+    tagged = []
+    for subreddit in subreddits:
+        r = requests.get("http://reddit.com/r/" + subreddit + "/about.json",
+        headers={"User-agent": "subscriber-count 0.1"})
+        sub_data = r.json()
+        print(subreddit, r.status_code)
+        subscribers = sub_data["data"]["subscribers"]
+        tagged.append((subreddit, subscribers, subscribers > threshold))
+        time.sleep(2)
+
+    return tagged
+
+def load_subreddits(filename):
+    """
+    Carga una lista de subreddits desde un fichero de texto. 
+    El formato del fichero debe consistir en un fichero por línea.
+    
+    Parámetros
+    ----------
+    filename: str
+        Nombre del fichero
+    """
+    subreddits = []
+    with open(filename) as f:
+        for line in f:
+            subreddits.append(line.strip())
+    return subreddits
 
 def parse_args():
     """
