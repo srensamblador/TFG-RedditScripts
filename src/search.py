@@ -3,7 +3,7 @@ from elasticsearch import Elasticsearch
 
 es = Elasticsearch(timeout=10000)
 
-res = es.search(index="reddit-loneliness",
+res = es.search(index="reddit-loneliness-ngram",
                 body={
                     "size": 0,
                     "query": {
@@ -13,8 +13,8 @@ res = es.search(index="reddit-loneliness",
                     },
                     "aggs": {
                         "significant_selftext": {
-                            "significant_text": {
-                                "field": "title",
+                            "significant_terms": {
+                                "field": "selftext",
                                 "size": 1000,
                                 "gnd": {}
                             }
@@ -28,6 +28,6 @@ for bucket in buckets:
     lista.append((bucket["key"], bucket["score"],
                   bucket["doc_count"], bucket["bg_count"]))
 
-with open("significant_selftext.csv", "w", encoding="UTF-8") as f:
+with open("significant_selftext-ngram.csv", "w", encoding="UTF-8") as f:
     f.write("Subreddit,GND,doc_count,bg_count\n")
     [f.write(",".join(map(str, t)) + "\n") for t in lista]
