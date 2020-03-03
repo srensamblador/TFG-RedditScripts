@@ -101,6 +101,7 @@ def query_API(subreddit, before_timestamp, cache_size = 3000):
     bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
         "- ", pb.AnimatedMarker(), " ", pb.Counter(), " ", pb.Timer()
     ])
+    print(len(list(gen)))
     for c in gen:
         c.d_["query"] = ""
         c.d_["scale"] = "r/"+subreddit 

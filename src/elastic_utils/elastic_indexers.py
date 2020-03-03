@@ -19,7 +19,7 @@ class Indexer:
     def __init__(self, connection, index_name):
         self.es = connection
         self.index_name = index_name
-        self.stats = {"indexed":0, "errors":0}
+        self.stats = {"indexed": 0, "errors": 0}
 
     def create_index(self):
         """
@@ -47,52 +47,94 @@ class Indexer:
                         }
                     }
                 }
-            }
-        }
-        self.es.indices.create(index=self.index_name, body=arguments)
+            }}
 
-        # Para poder utilizar agregaciones sobre los campos title y selftext es necesario activar fielddata
-        arguments = {
-            "properties": {
-                "title": {
-                    "type": "text",
-                    "fielddata": "true",
-                    "analyzer": "default"
-                },
-                "selftext": {
-                    "type": "text",
-                    "fielddata": "true",
-                    "analyzer": "default"
-                },
-                "subreddit": {
-                    "type": "keyword"
-                },
-                "query": {
-                    "type": "keyword"
-                },
-                "scale": {
-                    "type": "keyword"
-                },
-                "lonely": {
-                    "type": "keyword"
+        self.es.indices.create(index=self.index_name,
+                               body=arguments)
+
+        mappings = {
+            "mappings": {
+                "dynamic": False,
+                "properties": {
+                    "title": {
+                        "type": "text",
+                        "fielddata": "true",
+                        "analyzer": "default"
+                    },
+                    "selftext": {
+                        "type": "text",
+                        "fielddata": "true",
+                        "analyzer": "default"
+                    },
+                    "subreddit": {
+                        "type": "keyword"
+                    },
+                    "author": {
+                        "type": "keyword"
+                    },
+                    "category": {
+                        "type": "keyword"
+                    },
+                    "content_categories": {
+                        "type": "keyword"
+                    },
+                    "created_utc": {
+                        "type": "long"
+                    },
+                    "domain": {
+                        "type": "keyword"
+                    },
+                    "gilded": {
+                        "type": "long"
+                    },
+                    "num_comments": {
+                        "type": "long"
+                    },
+                    "over_18": {
+                        "type": "boolean"
+                    },
+                    "permalink": {
+                        "type": "keyword"
+                    },
+                    "removal_reason": {
+                        "type": "keyword"
+                    },
+                    "report_reasons": {
+                        "type": "keyword"
+                    },
+                    "subreddit_id": {
+                        "type": "keyword"
+                    },
+                    "subreddit_type": {
+                        "type": "keyword"
+                    },
+                    "url": {
+                        "type": "keyword"
+                    },
+                    "query": {
+                        "type": "keyword"
+                    },
+                    "scale": {
+                        "type": "keyword"
+                    },
+                    "lonely": {
+                        "type": "keyword"
+                    }
                 }
-            }
-        }
-
-        self.es.indices.put_mapping(
-            index=self.index_name, doc_type="post", body=arguments,  include_type_name=True)
+            }}
+        self.es.indices.put_mapping(index=self.index_name, doc_type="post", body=arguments,  include_type_name=True)
 
     def index_documents(self, documents):
         """
-            Indexa una lista de posts de Reddit.  
+            Indexa una lista de posts de Reddit.
             Filtramos los campos que necesitamos
         """
         toIndex = []
         # Lista de campos que queremos conservar
         fields = ["author", "category", "content_categories", "created_utc", "domain", "downs", "gilded", "likes",
-        "name", "num_comments", "num_reports", "over_18", "permalink", "post_categories", "removal_reason", "report_reasons",
-        "retrieved_on", "score", "selftext", "selftext_html", "subreddit", "subreddit_id", "subreddit_type", "title", 
-        "ups", "url", "user_reports", "query", "scale", "lonely"]
+                  "name", "num_comments", "num_reports", "over_18", "permalink", "post_categories", "removal_reason", "report_reasons",
+                  "retrieved_on", "score", "selftext", "selftext_html", "subreddit", "subreddit_id", "subreddit_type", "title",
+                  "ups", "url", "user_reports", "query", "scale", "lonely"]
 
         for document in documents:
             processed_post = {
@@ -105,11 +147,11 @@ class Indexer:
                 processed_post[field] = document.get(field)
 
             toIndex.append(processed_post)
-            
-        bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(toIndex), request_timeout=200, raise_on_error=False)
+
+        bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(
+            toIndex), request_timeout=200, raise_on_error=False)
         self.stats["indexed"] += bulk_stats[0]
         self.stats["errors"] += len(bulk_stats[1])
-
 
     def index_exists(self):
         """
