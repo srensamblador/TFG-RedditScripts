@@ -53,76 +53,76 @@ class Indexer:
                                body=arguments)
 
         mappings = {
-            "mappings": {
-                "dynamic": False,
-                "properties": {
-                    "title": {
-                        "type": "text",
-                        "fielddata": "true",
-                        "analyzer": "default"
-                    },
-                    "selftext": {
-                        "type": "text",
-                        "fielddata": "true",
-                        "analyzer": "default"
-                    },
-                    "subreddit": {
-                        "type": "keyword"
-                    },
-                    "author": {
-                        "type": "keyword"
-                    },
-                    "category": {
-                        "type": "keyword"
-                    },
-                    "content_categories": {
-                        "type": "keyword"
-                    },
-                    "created_utc": {
-                        "type": "long"
-                    },
-                    "domain": {
-                        "type": "keyword"
-                    },
-                    "gilded": {
-                        "type": "long"
-                    },
-                    "num_comments": {
-                        "type": "long"
-                    },
-                    "over_18": {
-                        "type": "boolean"
-                    },
-                    "permalink": {
-                        "type": "keyword"
-                    },
-                    "removal_reason": {
-                        "type": "keyword"
-                    },
-                    "report_reasons": {
-                        "type": "keyword"
-                    },
-                    "subreddit_id": {
-                        "type": "keyword"
-                    },
-                    "subreddit_type": {
-                        "type": "keyword"
-                    },
-                    "url": {
-                        "type": "keyword"
-                    },
-                    "query": {
-                        "type": "keyword"
-                    },
-                    "scale": {
-                        "type": "keyword"
-                    },
-                    "lonely": {
-                        "type": "keyword"
-                    }
+            "dynamic": False,
+            "properties": {
+                "title": {
+                    "type": "text",
+                    "fielddata": "true",
+                    "analyzer": "default"
+                },
+                "selftext": {
+                    "type": "text",
+                    "fielddata": "true",
+                    "analyzer": "default"
+                },
+                "subreddit": {
+                    "type": "keyword"
+                },
+                "author": {
+                    "type": "keyword"
+                },
+                "category": {
+                    "type": "keyword"
+                },
+                "content_categories": {
+                    "type": "keyword"
+                },
+                "created_utc": {
+                    "type": "long"
+                },
+                "domain": {
+                    "type": "keyword"
+                },
+                "gilded": {
+                    "type": "long"
+                },
+                "num_comments": {
+                    "type": "long"
+                },
+                "over_18": {
+                    "type": "boolean"
+                },
+                "permalink": {
+                    "type": "keyword"
+                },
+                "removal_reason": {
+                    "type": "keyword"
+                },
+                "report_reasons": {
+                    "type": "keyword"
+                },
+                "subreddit_id": {
+                    "type": "keyword"
+                },
+                "subreddit_type": {
+                    "type": "keyword"
+                },
+                "url": {
+                    "type": "keyword"
+                },
+                "query": {
+                    "type": "keyword"
+                },
+                "scale": {
+                    "type": "keyword"
+                },
+                "lonely": {
+                    "type": "keyword"
                 }
-            }}
-        self.es.indices.put_mapping(index=self.index_name, doc_type="post", body=arguments,  include_type_name=True)
+            }
+        }
+        self.es.indices.put_mapping(
+            index=self.index_name, doc_type="post", body=mappings,  include_type_name=True)
 
     def index_documents(self, documents):
         """
@@ -198,6 +198,7 @@ class NgramIndexer(Indexer):
         }
         self.es.indices.create(index=self.index_name, body=arguments)
         arguments = {
+            "dynamic": False,
             "properties": {
                 "title": {
                     "type": "text",
@@ -210,9 +211,49 @@ class NgramIndexer(Indexer):
                     "analyzer": "analyzer_shingle"
                 },
                 "subreddit": {
-                    "type": "text",
-                    "fielddata": "true",
-                    "analyzer": "default"
+                    "type": "keyword"
+                },
+                "author": {
+                    "type": "keyword"
+                },
+                "category": {
+                    "type": "keyword"
+                },
+                "content_categories": {
+                    "type": "keyword"
+                },
+                "created_utc": {
+                    "type": "long"
+                },
+                "domain": {
+                    "type": "keyword"
+                },
+                "gilded": {
+                    "type": "long"
+                },
+                "num_comments": {
+                    "type": "long"
+                },
+                "over_18": {
+                    "type": "boolean"
+                },
+                "permalink": {
+                    "type": "keyword"
+                },
+                "removal_reason": {
+                    "type": "keyword"
+                },
+                "report_reasons": {
+                    "type": "keyword"
+                },
+                "subreddit_id": {
+                    "type": "keyword"
+                },
+                "subreddit_type": {
+                    "type": "keyword"
+                },
+                "url": {
+                    "type": "keyword"
                 },
                 "query": {
                     "type": "keyword"

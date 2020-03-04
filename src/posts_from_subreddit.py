@@ -101,8 +101,7 @@ def query_API(subreddit, before_timestamp, cache_size = 3000):
     bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
         "- ", pb.AnimatedMarker(), " ", pb.Counter(), " ", pb.Timer()
     ])
-    print(len(list(gen)))
-    for c in gen:
+    for c in bar(gen):
         c.d_["query"] = ""
         c.d_["scale"] = "r/"+subreddit 
         c.d_["lonely"] = True        
@@ -147,11 +146,12 @@ def elastic_index(results):
         results: list
             lista de documentos a indexar
     """
-    indexers = [Indexer(es, "reddit-subreddit-loneliness"), NgramIndexer(es, "reddit-subreddit-loneliness-ngram")]
+    indexers = [Indexer(es, "subreddit-lonely"), NgramIndexer(es, "subreddit-lonely-ngram")]
     for indexer in indexers:
         if not indexer.index_exists():
-            print("Creado índice: " + indexer.index_name)
             indexer.create_index()
+            print("Creado índice: " + indexer.index_name)
+
         
         indexer.index_documents(results)
 
