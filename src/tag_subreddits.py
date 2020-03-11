@@ -18,45 +18,51 @@ import os
 from elasticsearch import Elasticsearch
 import requests
 import time
+import progressbar as pb
+from src.utils import file_handler
 
 __author__ = "Samuel Cifuentes García"
 
 def main(args):
-    raw_subreddits = load_subreddits(args.source)
-
+    raw_subreddits = file_handler.list_from_file(args.source)
+    print("Marcando subreddits...")
     tagged_subreddits = tag_subreddits(raw_subreddits, args.num_members)
-
-    for t in tagged_subreddits:
-        print(t)
+    print("Completado")
+    file_handler.write_to_csv(args.output, tagged_subreddits, header=["Subreddit","Subscriptores","Etiqueta"])
 
 def tag_subreddits(subreddits, threshold):
+    """
+        Etiqueta una lista de subreddits en función de su número de subscriptores.  
+        Se devuelve una lista de tuplas, con una tupla por subreddit, donde se incluye el nombre,
+        el número de subscriptores y un booleano indicando si supera el umbral establecido o no.  
+        En caso de error al recuperar un subreddit (por ejemplo, el subreddit está baneado), se incluye el error
+        y su código en vez del número de subscriptores y el booleano, para poder identificar a posteriori por qué ocurrió el
+        error.
+
+        Parámetros
+        ----------
+        subreddits: list of str
+            Lista de subreddits a marcar
+        threshold: int
+            Número de miembros utilizado como umbral para marcar los subreddits.
+    """
     tagged = []
-    for subreddit in subreddits:
+
+    bar = pb.ProgressBar(max_value=len(subreddits)) # Para mostrar el progreso en ejecución
+    for subreddit in bar(subreddits):
         r = requests.get("http://reddit.com/r/" + subreddit + "/about.json",
-        headers={"User-agent": "subscriber-count 0.1"})
-        sub_data = r.json()
-        print(subreddit, r.status_code)
-        subscribers = sub_data["data"]["subscribers"]
-        tagged.append((subreddit, subscribers, subscribers > threshold))
+        headers={"User-agent": "subscriber.count:v0.1"}) # La API de Reddit limita fuertemente a agentes de usuario por defecto
+        if r.status_code != 200: # Caso de error
+            tagged.append((subreddit, "", "Error: " + str(r.status_code)))
+        else:
+            sub_data = r.json()
+            subscribers = sub_data["data"]["subscribers"]
+            if subscribers == None:
+                subscribers = 0
+            tagged.append((subreddit, subscribers, subscribers > threshold))
         time.sleep(2)
 
     return tagged
-
-def load_subreddits(filename):
-    """
-    Carga una lista de subreddits desde un fichero de texto. 
-    El formato del fichero debe consistir en un fichero por línea.
-    
-    Parámetros
-    ----------
-    filename: str
-        Nombre del fichero
-    """
-    subreddits = []
-    with open(filename) as f:
-        for line in f:
-            subreddits.append(line.strip())
-    return subreddits
 
 def parse_args():
     """

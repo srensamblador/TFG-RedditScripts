@@ -62,7 +62,7 @@ def main(args):
 
     print("Total documentos: ", sum([x[2] for x in submissions_per_hour]))
 
-    # Guardamos los resultaods en el archivo especificado
+    # Guardamos los resultados en el archivo especificado
     print("Serializando en " + args.output + "...")
     write_to_csv(args.output, submissions_per_hour)
 
