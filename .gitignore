@@ -1,3 +1,4 @@
 dumps/*
 splitted_csv/*
 __pycache__/*
+*.csv
