@@ -1,5 +1,6 @@
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
+import progressbar as pb
 
 __author__ = "Samuel Cifuentes García"
 
@@ -268,3 +269,53 @@ class NgramIndexer(Indexer):
         }
         self.es.indices.put_mapping(
             index=self.index_name, doc_type="post", body=arguments,  include_type_name=True)
+
+
+class UserIndexer(Indexer):
+    def create_index(self):
+        self.es.indices.create(index=self.index_name)
+        mappings = {
+            "dynamic": False,
+            "properties": {
+                "author": {
+                    "type": "keyword"
+                },
+                "created_utc":{
+                    "type":"long"
+                },
+                "updated_on":{
+                    "type":"long"
+                },
+                "comment_karma":{
+                    "type":"long"
+                },
+                "link_karma":{
+                    "type":"long"
+                },
+                "posts":{
+                    "type":"long"
+                }
+            }
+        }
+        self.es.indices.put_mapping(
+            index=self.index_name, body=mappings)
+
+    def index_documents(self, documents):
+        toIndex = []
+        fields = ["id", "name", "created_utc", "updated_on", "comment_karma", "link_karma"]
+        # ['id', 'name', 'created_utc', 'updated_on', 'comment_karma', 'link_karma']
+        
+        for document in documents:
+            processed_user = {
+                "_index": self.index_name,
+                "_id": document[fields.index("id")]
+            }
+            for field in fields[1:]:
+                processed_user[field] = document[fields.index(field)]
+        
+            toIndex.append(processed_user)
+            
+        bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(
+            toIndex), request_timeout=200, raise_on_error=False)
+        self.stats["indexed"] += bulk_stats[0]
+        self.stats["errors"] += len(bulk_stats[1])
