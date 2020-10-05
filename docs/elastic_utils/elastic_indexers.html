@@ -28,6 +28,7 @@
 </summary>
 <pre><code class="python">from elasticsearch import Elasticsearch
 from elasticsearch import helpers
+import progressbar as pb
 
 __author__ = &#34;Samuel Cifuentes García&#34;
 
@@ -295,7 +296,57 @@ class NgramIndexer(Indexer):
             }
         }
         self.es.indices.put_mapping(
-            index=self.index_name, doc_type=&#34;post&#34;, body=arguments,  include_type_name=True)</code></pre>
+            index=self.index_name, doc_type=&#34;post&#34;, body=arguments,  include_type_name=True)
+
+
+class UserIndexer(Indexer):
+    def create_index(self):
+        self.es.indices.create(index=self.index_name)
+        mappings = {
+            &#34;dynamic&#34;: False,
+            &#34;properties&#34;: {
+                &#34;author&#34;: {
+                    &#34;type&#34;: &#34;keyword&#34;
+                },
+                &#34;created_utc&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                },
+                &#34;updated_on&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                },
+                &#34;comment_karma&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                },
+                &#34;link_karma&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                },
+                &#34;posts&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                }
+            }
+        }
+        self.es.indices.put_mapping(
+            index=self.index_name, body=mappings)
+
+    def index_documents(self, documents):
+        toIndex = []
+        fields = [&#34;id&#34;, &#34;name&#34;, &#34;created_utc&#34;, &#34;updated_on&#34;, &#34;comment_karma&#34;, &#34;link_karma&#34;]
+        # [&#39;id&#39;, &#39;name&#39;, &#39;created_utc&#39;, &#39;updated_on&#39;, &#39;comment_karma&#39;, &#39;link_karma&#39;]
+        
+        for document in documents:
+            processed_user = {
+                &#34;_index&#34;: self.index_name,
+                &#34;_id&#34;: document[fields.index(&#34;id&#34;)]
+            }
+            for field in fields[1:]:
+                processed_user[field] = document[fields.index(field)]
+        
+            toIndex.append(processed_user)
+            
+        bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(
+            toIndex), request_timeout=200, raise_on_error=False)
+        self.stats[&#34;indexed&#34;] += bulk_stats[0]
+        self.stats[&#34;errors&#34;] += len(bulk_stats[1])</code></pre>
 </details>
 </section>
 <section>
@@ -480,6 +531,7 @@ Nombre del índice con el que trabajará el indexer</p></div>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="src.elastic_utils.elastic_indexers.NgramIndexer" href="#src.elastic_utils.elastic_indexers.NgramIndexer">NgramIndexer</a></li>
+<li><a title="src.elastic_utils.elastic_indexers.UserIndexer" href="#src.elastic_utils.elastic_indexers.UserIndexer">UserIndexer</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -791,6 +843,85 @@ Filtramos los campos que necesitamos</p></div>
 </li>
 </ul>
 </dd>
+<dt id="src.elastic_utils.elastic_indexers.UserIndexer"><code class="flex name class">
+<span>class <span class="ident">UserIndexer</span></span>
+<span>(</span><span>connection, index_name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Clase encargada de crear un índice en Elasticsearch e indexar documentos.</p>
+<h2 id="atributos">Atributos</h2>
+<p>es: Elasticsearch
+Conexión a un servidor Elastic
+index_name: str
+Nombre del índice con el que trabajará el indexer</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UserIndexer(Indexer):
+    def create_index(self):
+        self.es.indices.create(index=self.index_name)
+        mappings = {
+            &#34;dynamic&#34;: False,
+            &#34;properties&#34;: {
+                &#34;author&#34;: {
+                    &#34;type&#34;: &#34;keyword&#34;
+                },
+                &#34;created_utc&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                },
+                &#34;updated_on&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                },
+                &#34;comment_karma&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                },
+                &#34;link_karma&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                },
+                &#34;posts&#34;:{
+                    &#34;type&#34;:&#34;long&#34;
+                }
+            }
+        }
+        self.es.indices.put_mapping(
+            index=self.index_name, body=mappings)
+
+    def index_documents(self, documents):
+        toIndex = []
+        fields = [&#34;id&#34;, &#34;name&#34;, &#34;created_utc&#34;, &#34;updated_on&#34;, &#34;comment_karma&#34;, &#34;link_karma&#34;]
+        # [&#39;id&#39;, &#39;name&#39;, &#39;created_utc&#39;, &#39;updated_on&#39;, &#39;comment_karma&#39;, &#39;link_karma&#39;]
+        
+        for document in documents:
+            processed_user = {
+                &#34;_index&#34;: self.index_name,
+                &#34;_id&#34;: document[fields.index(&#34;id&#34;)]
+            }
+            for field in fields[1:]:
+                processed_user[field] = document[fields.index(field)]
+        
+            toIndex.append(processed_user)
+            
+        bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(
+            toIndex), request_timeout=200, raise_on_error=False)
+        self.stats[&#34;indexed&#34;] += bulk_stats[0]
+        self.stats[&#34;errors&#34;] += len(bulk_stats[1])</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="src.elastic_utils.elastic_indexers.Indexer" href="#src.elastic_utils.elastic_indexers.Indexer">Indexer</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="src.elastic_utils.elastic_indexers.Indexer" href="#src.elastic_utils.elastic_indexers.Indexer">Indexer</a></b></code>:
+<ul class="hlist">
+<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.create_index" href="#src.elastic_utils.elastic_indexers.Indexer.create_index">create_index</a></code></li>
+<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_documents" href="#src.elastic_utils.elastic_indexers.Indexer.index_documents">index_documents</a></code></li>
+<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_exists" href="#src.elastic_utils.elastic_indexers.Indexer.index_exists">index_exists</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 </dl>
 </section>
 </article>
@@ -817,6 +948,9 @@ Filtramos los campos que necesitamos</p></div>
 </li>
 <li>
 <h4><code><a title="src.elastic_utils.elastic_indexers.NgramIndexer" href="#src.elastic_utils.elastic_indexers.NgramIndexer">NgramIndexer</a></code></h4>
+</li>
+<li>
+<h4><code><a title="src.elastic_utils.elastic_indexers.UserIndexer" href="#src.elastic_utils.elastic_indexers.UserIndexer">UserIndexer</a></code></h4>
 </li>
 </ul>
 </li>
