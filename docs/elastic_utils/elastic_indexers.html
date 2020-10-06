@@ -195,6 +195,11 @@ class NgramIndexer(Indexer):
     &#34;&#34;&#34;
 
     def create_index(self):
+        &#34;&#34;&#34;
+            Crea un índice de n-gramas
+            Mantiene el filtrado de palabras vacías
+            Añade un analizador para tal fin
+        &#34;&#34;&#34;
         arguments = {
             &#34;settings&#34;: {
                 &#34;index&#34;: {
@@ -300,7 +305,14 @@ class NgramIndexer(Indexer):
 
 
 class UserIndexer(Indexer):
+    &#34;&#34;&#34;
+        Clase heredera de Indexer que se especializará en índices de usuarios de Reddit
+    &#34;&#34;&#34;
+
     def create_index(self):
+        &#34;&#34;&#34;
+            Crea un índice de usuarios, incluyendo mapeo de los campos necesarios
+        &#34;&#34;&#34;
         self.es.indices.create(index=self.index_name)
         mappings = {
             &#34;dynamic&#34;: False,
@@ -328,10 +340,18 @@ class UserIndexer(Indexer):
         self.es.indices.put_mapping(
             index=self.index_name, body=mappings)
 
-    def index_documents(self, documents):
+    def index_documents(self, documents, fields):
+        &#34;&#34;&#34;
+            Indexa documentos en el índice.
+
+            Parámetros
+            ----------
+            documents: list
+                \tLista de documentos a indexar
+            fields: list
+                \tLista con los campos a indexar
+        &#34;&#34;&#34;
         toIndex = []
-        fields = [&#34;id&#34;, &#34;name&#34;, &#34;created_utc&#34;, &#34;updated_on&#34;, &#34;comment_karma&#34;, &#34;link_karma&#34;]
-        # [&#39;id&#39;, &#39;name&#39;, &#39;created_utc&#39;, &#39;updated_on&#39;, &#39;comment_karma&#39;, &#39;link_karma&#39;]
         
         for document in documents:
             processed_user = {
@@ -725,6 +745,11 @@ Filtramos los campos que necesitamos</p></div>
     &#34;&#34;&#34;
 
     def create_index(self):
+        &#34;&#34;&#34;
+            Crea un índice de n-gramas
+            Mantiene el filtrado de palabras vacías
+            Añade un analizador para tal fin
+        &#34;&#34;&#34;
         arguments = {
             &#34;settings&#34;: {
                 &#34;index&#34;: {
@@ -832,11 +857,134 @@ Filtramos los campos que necesitamos</p></div>
 <ul class="hlist">
 <li><a title="src.elastic_utils.elastic_indexers.Indexer" href="#src.elastic_utils.elastic_indexers.Indexer">Indexer</a></li>
 </ul>
+<h3>Methods</h3>
+<dl>
+<dt id="src.elastic_utils.elastic_indexers.NgramIndexer.create_index"><code class="name flex">
+<span>def <span class="ident">create_index</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Crea un índice de n-gramas
+Mantiene el filtrado de palabras vacías
+Añade un analizador para tal fin</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_index(self):
+    &#34;&#34;&#34;
+        Crea un índice de n-gramas
+        Mantiene el filtrado de palabras vacías
+        Añade un analizador para tal fin
+    &#34;&#34;&#34;
+    arguments = {
+        &#34;settings&#34;: {
+            &#34;index&#34;: {
+                &#34;analysis&#34;: {
+                    &#34;analyzer&#34;: {
+                        &#34;default&#34;: {
+                            &#34;tokenizer&#34;: &#34;standard&#34;,
+                            &#34;filter&#34;: [&#34;lowercase&#34;, &#34;filter_stopwords&#34;]
+                        },
+                        &#34;analyzer_shingle&#34;: {
+                            &#34;tokenizer&#34;: &#34;standard&#34;,
+                            &#34;filter&#34;: [&#34;lowercase&#34;, &#34;filter_stopwords&#34;, &#34;filter_shingle&#34;]
+                        }
+                    },
+                    &#34;filter&#34;: {
+                        &#34;filter_stopwords&#34;: {
+                            &#34;type&#34;: &#34;stop&#34;,
+                            &#34;stopwords&#34;: [&#34;a&#34;, &#34;about&#34;, &#34;above&#34;, &#34;after&#34;, &#34;again&#34;, &#34;against&#34;, &#34;all&#34;, &#34;also&#34;, &#34;am&#34;, &#34;an&#34;, &#34;and&#34;, &#34;another&#34;, &#34;any&#34;, &#34;are&#34;, &#34;aren&#39;t&#34;, &#34;as&#34;, &#34;at&#34;, &#34;back&#34;, &#34;be&#34;, &#34;because&#34;, &#34;been&#34;, &#34;before&#34;, &#34;being&#34;, &#34;below&#34;, &#34;between&#34;, &#34;both&#34;, &#34;but&#34;, &#34;by&#34;, &#34;can&#39;t&#34;, &#34;cannot&#34;, &#34;could&#34;, &#34;couldn&#39;t&#34;, &#34;did&#34;, &#34;didn&#39;t&#34;, &#34;do&#34;, &#34;does&#34;, &#34;doesn&#39;t&#34;, &#34;doing&#34;, &#34;don&#39;t&#34;, &#34;down&#34;, &#34;during&#34;, &#34;each&#34;, &#34;even&#34;, &#34;ever&#34;, &#34;every&#34;, &#34;few&#34;, &#34;first&#34;, &#34;five&#34;, &#34;for&#34;, &#34;four&#34;, &#34;from&#34;, &#34;further&#34;, &#34;get&#34;, &#34;go&#34;, &#34;goes&#34;, &#34;had&#34;, &#34;hadn&#39;t&#34;, &#34;has&#34;, &#34;hasn&#39;t&#34;, &#34;have&#34;, &#34;haven&#39;t&#34;, &#34;having&#34;, &#34;he&#34;, &#34;he&#39;d&#34;, &#34;he&#39;ll&#34;, &#34;he&#39;s&#34;, &#34;her&#34;, &#34;here&#34;, &#34;here&#39;s&#34;, &#34;hers&#34;, &#34;herself&#34;, &#34;high&#34;, &#34;him&#34;, &#34;himself&#34;, &#34;his&#34;, &#34;how&#34;, &#34;how&#39;s&#34;, &#34;however&#34;, &#34;i&#34;, &#34;i&#39;d&#34;, &#34;i&#39;ll&#34;, &#34;i&#39;m&#34;, &#34;i&#39;ve&#34;, &#34;if&#34;, &#34;in&#34;, &#34;into&#34;, &#34;is&#34;, &#34;isn&#39;t&#34;, &#34;it&#34;, &#34;it&#39;s&#34;, &#34;its&#34;, &#34;itself&#34;, &#34;just&#34;, &#34;least&#34;, &#34;less&#34;, &#34;let&#39;s&#34;, &#34;like&#34;, &#34;long&#34;, &#34;made&#34;, &#34;make&#34;, &#34;many&#34;, &#34;me&#34;, &#34;more&#34;, &#34;most&#34;, &#34;mustn&#39;t&#34;, &#34;my&#34;, &#34;myself&#34;, &#34;never&#34;, &#34;new&#34;, &#34;no&#34;, &#34;nor&#34;, &#34;not&#34;, &#34;now&#34;, &#34;of&#34;, &#34;off&#34;, &#34;old&#34;, &#34;on&#34;, &#34;once&#34;, &#34;one&#34;, &#34;only&#34;, &#34;or&#34;, &#34;other&#34;, &#34;ought&#34;, &#34;our&#34;, &#34;ours&#34;, &#34;ourselves&#34;, &#34;out&#34;, &#34;over&#34;, &#34;own&#34;, &#34;put&#34;, &#34;said&#34;, &#34;same&#34;, &#34;say&#34;, &#34;says&#34;, &#34;second&#34;, &#34;see&#34;, &#34;seen&#34;, &#34;shan&#39;t&#34;, &#34;she&#34;, &#34;she&#39;d&#34;, &#34;she&#39;ll&#34;, &#34;she&#39;s&#34;, &#34;should&#34;, &#34;shouldn&#39;t&#34;, &#34;since&#34;, &#34;so&#34;, &#34;some&#34;, &#34;still&#34;, &#34;such&#34;, &#34;take&#34;, &#34;than&#34;, &#34;that&#34;, &#34;that&#39;s&#34;, &#34;the&#34;, &#34;their&#34;, &#34;theirs&#34;, &#34;them&#34;, &#34;themselves&#34;, &#34;then&#34;, &#34;there&#34;, &#34;there&#39;s&#34;, &#34;these&#34;, &#34;they&#34;, &#34;they&#39;d&#34;, &#34;they&#39;ll&#34;, &#34;they&#39;re&#34;, &#34;they&#39;ve&#34;, &#34;this&#34;, &#34;those&#34;, &#34;three&#34;, &#34;through&#34;, &#34;to&#34;, &#34;too&#34;, &#34;two&#34;, &#34;under&#34;, &#34;until&#34;, &#34;up&#34;, &#34;very&#34;, &#34;was&#34;, &#34;wasn&#39;t&#34;, &#34;way&#34;, &#34;we&#34;, &#34;we&#39;d&#34;, &#34;we&#39;ll&#34;, &#34;we&#39;re&#34;, &#34;we&#39;ve&#34;, &#34;well&#34;, &#34;were&#34;, &#34;weren&#39;t&#34;, &#34;what&#34;, &#34;what&#39;s&#34;, &#34;when&#34;, &#34;when&#39;s&#34;, &#34;where&#34;, &#34;where&#39;s&#34;, &#34;whether&#34;, &#34;which&#34;, &#34;while&#34;, &#34;who&#34;, &#34;who&#39;s&#34;, &#34;whom&#34;, &#34;why&#34;, &#34;why&#39;s&#34;, &#34;with&#34;, &#34;won&#39;t&#34;, &#34;would&#34;, &#34;wouldn&#39;t&#34;, &#34;you&#34;, &#34;you&#39;d&#34;, &#34;you&#39;ll&#34;, &#34;you&#39;re&#34;, &#34;you&#39;ve&#34;, &#34;your&#34;, &#34;yours&#34;, &#34;yourself&#34;, &#34;yourselves&#34;]
+                        },
+                        &#34;filter_shingle&#34;: {
+                            &#34;type&#34;: &#34;shingle&#34;,
+                            &#34;max_shingle_size&#34;: 2,
+                            &#34;min_shingle_size&#34;: 2,
+                            &#34;output_unigrams&#34;: &#34;false&#34;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    self.es.indices.create(index=self.index_name, body=arguments)
+    arguments = {
+        &#34;dynamic&#34;: False,
+        &#34;properties&#34;: {
+            &#34;title&#34;: {
+                &#34;type&#34;: &#34;text&#34;,
+                &#34;fielddata&#34;: &#34;true&#34;,
+                &#34;analyzer&#34;: &#34;analyzer_shingle&#34;
+            },
+            &#34;selftext&#34;: {
+                &#34;type&#34;: &#34;text&#34;,
+                &#34;fielddata&#34;: &#34;true&#34;,
+                &#34;analyzer&#34;: &#34;analyzer_shingle&#34;
+            },
+            &#34;subreddit&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;author&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;category&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;content_categories&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;created_utc&#34;: {
+                &#34;type&#34;: &#34;long&#34;
+            },
+            &#34;domain&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;gilded&#34;: {
+                &#34;type&#34;: &#34;long&#34;
+            },
+            &#34;num_comments&#34;: {
+                &#34;type&#34;: &#34;long&#34;
+            },
+            &#34;over_18&#34;: {
+                &#34;type&#34;: &#34;boolean&#34;
+            },
+            &#34;permalink&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;removal_reason&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;report_reasons&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;subreddit_id&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;subreddit_type&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;url&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;query&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;scale&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;lonely&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            }
+        }
+    }
+    self.es.indices.put_mapping(
+        index=self.index_name, doc_type=&#34;post&#34;, body=arguments,  include_type_name=True)</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="src.elastic_utils.elastic_indexers.Indexer" href="#src.elastic_utils.elastic_indexers.Indexer">Indexer</a></b></code>:
 <ul class="hlist">
-<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.create_index" href="#src.elastic_utils.elastic_indexers.Indexer.create_index">create_index</a></code></li>
 <li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_documents" href="#src.elastic_utils.elastic_indexers.Indexer.index_documents">index_documents</a></code></li>
 <li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_exists" href="#src.elastic_utils.elastic_indexers.Indexer.index_exists">index_exists</a></code></li>
 </ul>
@@ -848,18 +996,20 @@ Filtramos los campos que necesitamos</p></div>
 <span>(</span><span>connection, index_name)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Clase encargada de crear un índice en Elasticsearch e indexar documentos.</p>
-<h2 id="atributos">Atributos</h2>
-<p>es: Elasticsearch
-Conexión a un servidor Elastic
-index_name: str
-Nombre del índice con el que trabajará el indexer</p></div>
+<div class="desc"><p>Clase heredera de Indexer que se especializará en índices de usuarios de Reddit</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class UserIndexer(Indexer):
+    &#34;&#34;&#34;
+        Clase heredera de Indexer que se especializará en índices de usuarios de Reddit
+    &#34;&#34;&#34;
+
     def create_index(self):
+        &#34;&#34;&#34;
+            Crea un índice de usuarios, incluyendo mapeo de los campos necesarios
+        &#34;&#34;&#34;
         self.es.indices.create(index=self.index_name)
         mappings = {
             &#34;dynamic&#34;: False,
@@ -887,10 +1037,18 @@ Nombre del índice con el que trabajará el indexer</p></div>
         self.es.indices.put_mapping(
             index=self.index_name, body=mappings)
 
-    def index_documents(self, documents):
+    def index_documents(self, documents, fields):
+        &#34;&#34;&#34;
+            Indexa documentos en el índice.
+
+            Parámetros
+            ----------
+            documents: list
+                \tLista de documentos a indexar
+            fields: list
+                \tLista con los campos a indexar
+        &#34;&#34;&#34;
         toIndex = []
-        fields = [&#34;id&#34;, &#34;name&#34;, &#34;created_utc&#34;, &#34;updated_on&#34;, &#34;comment_karma&#34;, &#34;link_karma&#34;]
-        # [&#39;id&#39;, &#39;name&#39;, &#39;created_utc&#39;, &#39;updated_on&#39;, &#39;comment_karma&#39;, &#39;link_karma&#39;]
         
         for document in documents:
             processed_user = {
@@ -911,12 +1069,97 @@ Nombre del índice con el que trabajará el indexer</p></div>
 <ul class="hlist">
 <li><a title="src.elastic_utils.elastic_indexers.Indexer" href="#src.elastic_utils.elastic_indexers.Indexer">Indexer</a></li>
 </ul>
+<h3>Methods</h3>
+<dl>
+<dt id="src.elastic_utils.elastic_indexers.UserIndexer.create_index"><code class="name flex">
+<span>def <span class="ident">create_index</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Crea un índice de usuarios, incluyendo mapeo de los campos necesarios</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_index(self):
+    &#34;&#34;&#34;
+        Crea un índice de usuarios, incluyendo mapeo de los campos necesarios
+    &#34;&#34;&#34;
+    self.es.indices.create(index=self.index_name)
+    mappings = {
+        &#34;dynamic&#34;: False,
+        &#34;properties&#34;: {
+            &#34;author&#34;: {
+                &#34;type&#34;: &#34;keyword&#34;
+            },
+            &#34;created_utc&#34;:{
+                &#34;type&#34;:&#34;long&#34;
+            },
+            &#34;updated_on&#34;:{
+                &#34;type&#34;:&#34;long&#34;
+            },
+            &#34;comment_karma&#34;:{
+                &#34;type&#34;:&#34;long&#34;
+            },
+            &#34;link_karma&#34;:{
+                &#34;type&#34;:&#34;long&#34;
+            },
+            &#34;posts&#34;:{
+                &#34;type&#34;:&#34;long&#34;
+            }
+        }
+    }
+    self.es.indices.put_mapping(
+        index=self.index_name, body=mappings)</code></pre>
+</details>
+</dd>
+<dt id="src.elastic_utils.elastic_indexers.UserIndexer.index_documents"><code class="name flex">
+<span>def <span class="ident">index_documents</span></span>(<span>self, documents, fields)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Indexa documentos en el índice.</p>
+<h2 id="parametros">Parámetros</h2>
+<p>documents: list
+Lista de documentos a indexar
+fields: list
+Lista con los campos a indexar</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def index_documents(self, documents, fields):
+    &#34;&#34;&#34;
+        Indexa documentos en el índice.
+
+        Parámetros
+        ----------
+        documents: list
+            \tLista de documentos a indexar
+        fields: list
+            \tLista con los campos a indexar
+    &#34;&#34;&#34;
+    toIndex = []
+    
+    for document in documents:
+        processed_user = {
+            &#34;_index&#34;: self.index_name,
+            &#34;_id&#34;: document[fields.index(&#34;id&#34;)]
+        }
+        for field in fields[1:]:
+            processed_user[field] = document[fields.index(field)]
+    
+        toIndex.append(processed_user)
+        
+    bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(
+        toIndex), request_timeout=200, raise_on_error=False)
+    self.stats[&#34;indexed&#34;] += bulk_stats[0]
+    self.stats[&#34;errors&#34;] += len(bulk_stats[1])</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="src.elastic_utils.elastic_indexers.Indexer" href="#src.elastic_utils.elastic_indexers.Indexer">Indexer</a></b></code>:
 <ul class="hlist">
-<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.create_index" href="#src.elastic_utils.elastic_indexers.Indexer.create_index">create_index</a></code></li>
-<li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_documents" href="#src.elastic_utils.elastic_indexers.Indexer.index_documents">index_documents</a></code></li>
 <li><code><a title="src.elastic_utils.elastic_indexers.Indexer.index_exists" href="#src.elastic_utils.elastic_indexers.Indexer.index_exists">index_exists</a></code></li>
 </ul>
 </li>
@@ -948,9 +1191,16 @@ Nombre del índice con el que trabajará el indexer</p></div>
 </li>
 <li>
 <h4><code><a title="src.elastic_utils.elastic_indexers.NgramIndexer" href="#src.elastic_utils.elastic_indexers.NgramIndexer">NgramIndexer</a></code></h4>
+<ul class="">
+<li><code><a title="src.elastic_utils.elastic_indexers.NgramIndexer.create_index" href="#src.elastic_utils.elastic_indexers.NgramIndexer.create_index">create_index</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="src.elastic_utils.elastic_indexers.UserIndexer" href="#src.elastic_utils.elastic_indexers.UserIndexer">UserIndexer</a></code></h4>
+<ul class="">
+<li><code><a title="src.elastic_utils.elastic_indexers.UserIndexer.create_index" href="#src.elastic_utils.elastic_indexers.UserIndexer.create_index">create_index</a></code></li>
+<li><code><a title="src.elastic_utils.elastic_indexers.UserIndexer.index_documents" href="#src.elastic_utils.elastic_indexers.UserIndexer.index_documents">index_documents</a></code></li>
+</ul>
 </li>
 </ul>
 </li>
