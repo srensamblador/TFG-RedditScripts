@@ -167,6 +167,11 @@ class NgramIndexer(Indexer):
     """
 
     def create_index(self):
+        """
+            Crea un índice de n-gramas
+            Mantiene el filtrado de palabras vacías
+            Añade un analizador para tal fin
+        """
         arguments = {
             "settings": {
                 "index": {
@@ -272,7 +277,14 @@ class NgramIndexer(Indexer):
 
 
 class UserIndexer(Indexer):
+    """
+        Clase heredera de Indexer que se especializará en índices de usuarios de Reddit
+    """
+
     def create_index(self):
+        """
+            Crea un índice de usuarios, incluyendo mapeo de los campos necesarios
+        """
         self.es.indices.create(index=self.index_name)
         mappings = {
             "dynamic": False,
@@ -300,10 +312,18 @@ class UserIndexer(Indexer):
         self.es.indices.put_mapping(
             index=self.index_name, body=mappings)
 
-    def index_documents(self, documents):
+    def index_documents(self, documents, fields):
+        """
+            Indexa documentos en el índice.
+
+            Parámetros
+            ----------
+            documents: list
+                \tLista de documentos a indexar
+            fields: list
+                \tLista con los campos a indexar
+        """
         toIndex = []
-        fields = ["id", "name", "created_utc", "updated_on", "comment_karma", "link_karma"]
-        # ['id', 'name', 'created_utc', 'updated_on', 'comment_karma', 'link_karma']
         
         for document in documents:
             processed_user = {

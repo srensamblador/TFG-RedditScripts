@@ -1,29 +1,35 @@
+"""
+    Script que crea un índice de usuarios de Reddit a partir de un dataset almacenado en un fichero
+
+    Parámetros
+    ----------
+    * -i, --index: Nombre del índice de usuarios a crear.
+    * -e, --elasticsearch: Dirección del servidor elastic contra el que indexar. Por defecto, http://localhost:9200
+"""
+
 import csv
 import gzip
 from elasticsearch import Elasticsearch
 from src.elastic_utils.elastic_indexers import UserIndexer
-import os
 import progressbar as pb
-from psaw import PushshiftAPI
+import argparse
 
 __author__ = "Samuel Cifuentes García"
 
 CHUNK_SIZE = 500000
 
-def main():
-    es = Elasticsearch()
-    indexer = UserIndexer(es, "reddit-users")
+def main(args):
+    es = Elasticsearch(args.elasticsearch)
+    # Se crea el índice si no existe
+    indexer = UserIndexer(es, args.index)
     if not indexer.index_exists():
         print("Creando índice " + indexer.index_name)
         indexer.create_index()
 
-    global api
-    api = PushshiftAPI()
-
-
     f = gzip.open("dataset-users/data.csv.gz", "rt")
     data = csv.reader(f)
     
+    # La primera fila del .csv contiene las cabeceras
     headers = next(data)
 
     print("Indexando...")
@@ -32,17 +38,19 @@ def main():
     for line in bar(data):
         cache.append(line)
 
+        # Por limitaciones de memoria se indexa en trozos
         if len(cache) >= CHUNK_SIZE:
-            # authors = [line[headers.index("name")] for line in cache]
-            # posts_per_author = query_api(authors)
-            indexer.index_documents(cache)
+            indexer.index_documents(cache, headers)
             cache = []
 
-def query_api(authors):
-    gen = api.search_submissions(author=authors,aggs="author")
-
-    aggs = next(gen)
-    return aggs["author"]
+def parse_args():
+    """
+        Procesamiento de los argumentos con los que se ejecutó el script
+    """
+    parser = argparse.ArgumentParser(description="Script para obtener los usuarios que postearon en un subreddit, obtener sus datos e indexarlos en un nuevo índice")
+    parser.add_argument("-i", "--index", default="reddit-users", help="Nombre del índice de Elasticsearch en el que se indexaran los usuarios")
+    parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="Dirección del servidor Elasticsearch")
+    return parser.parse_args()
 
 if __name__=="__main__":
-    main()
+    main(parse_args)
