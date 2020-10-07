@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>src.authors_from_index API documentation</title>
+<title>src.users.authors_from_index API documentation</title>
 <meta name="description" content="Script utilizado para obtener una lista de usuarios a partir de una consulta de un índice de documentos,
 y que crea un nuevo índice, de usuarios, con …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -20,7 +20,7 @@ y que crea un nuevo índice, de usuarios, con …" />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.authors_from_index</code></h1>
+<h1 class="title">Module <code>src.users.authors_from_index</code></h1>
 </header>
 <section id="section-intro">
 <p>Script utilizado para obtener una lista de usuarios a partir de una consulta de un índice de documentos,
@@ -222,7 +222,7 @@ if __name__== &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="src.authors_from_index.get_authors"><code class="name flex">
+<dt id="src.users.authors_from_index.get_authors"><code class="name flex">
 <span>def <span class="ident">get_authors</span></span>(<span>index)</span>
 </code></dt>
 <dd>
@@ -300,7 +300,7 @@ Lista de autores resultantes</p></div>
     return authors</code></pre>
 </details>
 </dd>
-<dt id="src.authors_from_index.get_user_data"><code class="name flex">
+<dt id="src.users.authors_from_index.get_user_data"><code class="name flex">
 <span>def <span class="ident">get_user_data</span></span>(<span>authors, before_date)</span>
 </code></dt>
 <dd>
@@ -368,7 +368,7 @@ Lista de usuarios junto con sus datos</p></div>
     return users</code></pre>
 </details>
 </dd>
-<dt id="src.authors_from_index.main"><code class="name flex">
+<dt id="src.users.authors_from_index.main"><code class="name flex">
 <span>def <span class="ident">main</span></span>(<span>args)</span>
 </code></dt>
 <dd>
@@ -400,7 +400,7 @@ Lista de usuarios junto con sus datos</p></div>
     indexer.index_documents(to_index, headers)</code></pre>
 </details>
 </dd>
-<dt id="src.authors_from_index.parse_args"><code class="name flex">
+<dt id="src.users.authors_from_index.parse_args"><code class="name flex">
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -438,15 +438,15 @@ Lista de usuarios junto con sus datos</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src" href="index.html">src</a></code></li>
+<li><code><a title="src.users" href="index.html">src.users</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="src.authors_from_index.get_authors" href="#src.authors_from_index.get_authors">get_authors</a></code></li>
-<li><code><a title="src.authors_from_index.get_user_data" href="#src.authors_from_index.get_user_data">get_user_data</a></code></li>
-<li><code><a title="src.authors_from_index.main" href="#src.authors_from_index.main">main</a></code></li>
-<li><code><a title="src.authors_from_index.parse_args" href="#src.authors_from_index.parse_args">parse_args</a></code></li>
+<li><code><a title="src.users.authors_from_index.get_authors" href="#src.users.authors_from_index.get_authors">get_authors</a></code></li>
+<li><code><a title="src.users.authors_from_index.get_user_data" href="#src.users.authors_from_index.get_user_data">get_user_data</a></code></li>
+<li><code><a title="src.users.authors_from_index.main" href="#src.users.authors_from_index.main">main</a></code></li>
+<li><code><a title="src.users.authors_from_index.parse_args" href="#src.users.authors_from_index.parse_args">parse_args</a></code></li>
 </ul>
 </li>
 </ul>

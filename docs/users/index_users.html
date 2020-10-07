@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>src.index_users API documentation</title>
+<title>src.users.index_users API documentation</title>
 <meta name="description" content="Script que crea un índice de usuarios de Reddit a partir de un dataset almacenado en un fichero …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,13 +19,14 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.index_users</code></h1>
+<h1 class="title">Module <code>src.users.index_users</code></h1>
 </header>
 <section id="section-intro">
 <p>Script que crea un índice de usuarios de Reddit a partir de un dataset almacenado en un fichero</p>
 <h2 id="parametros">Parámetros</h2>
 <ul>
 <li>-i, &ndash;index: Nombre del índice de usuarios a crear.</li>
+<li>-d, &ndash;data: Ruta del archivo con el dataset de usuarios.</li>
 <li>-e, &ndash;elasticsearch: Dirección del servidor elastic contra el que indexar. Por defecto, <a href="http://localhost:9200">http://localhost:9200</a></li>
 </ul>
 <details class="source">
@@ -38,6 +39,7 @@
     Parámetros
     ----------
     * -i, --index: Nombre del índice de usuarios a crear.
+    * -d, --data: Ruta del archivo con el dataset de usuarios.
     * -e, --elasticsearch: Dirección del servidor elastic contra el que indexar. Por defecto, http://localhost:9200
 &#34;&#34;&#34;
 
@@ -60,7 +62,7 @@ def main(args):
         print(&#34;Creando índice &#34; + indexer.index_name)
         indexer.create_index()
 
-    f = gzip.open(&#34;dataset-users/data.csv.gz&#34;, &#34;rt&#34;)
+    f = gzip.open(args.data, &#34;rt&#34;)
     data = csv.reader(f)
     
     # La primera fila del .csv contiene las cabeceras
@@ -82,12 +84,13 @@ def parse_args():
         Procesamiento de los argumentos con los que se ejecutó el script
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para obtener los usuarios que postearon en un subreddit, obtener sus datos e indexarlos en un nuevo índice&#34;)
-    parser.add_argument(&#34;-i&#34;, &#34;--index&#34;, default=&#34;reddit-users&#34;, help=&#34;Nombre del índice de Elasticsearch en el que se indexaran los usuarios&#34;)
+    parser.add_argument(&#34;-i&#34;, &#34;--index&#34;, default=&#34;users-reddit&#34;, help=&#34;Nombre del índice de Elasticsearch en el que se indexaran los usuarios&#34;)
+    parser.add_argument(&#34;-d&#34;, &#34;--data&#34;, default=&#34;dataset-users/data.csv.gz&#34;, help=&#34;Ruta del archivo con el dataset de usuarios&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch&#34;)
     return parser.parse_args()
 
 if __name__==&#34;__main__&#34;:
-    main(parse_args)</code></pre>
+    main(parse_args())</code></pre>
 </details>
 </section>
 <section>
@@ -97,7 +100,7 @@ if __name__==&#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="src.index_users.main"><code class="name flex">
+<dt id="src.users.index_users.main"><code class="name flex">
 <span>def <span class="ident">main</span></span>(<span>args)</span>
 </code></dt>
 <dd>
@@ -114,7 +117,7 @@ if __name__==&#34;__main__&#34;:
         print(&#34;Creando índice &#34; + indexer.index_name)
         indexer.create_index()
 
-    f = gzip.open(&#34;dataset-users/data.csv.gz&#34;, &#34;rt&#34;)
+    f = gzip.open(args.data, &#34;rt&#34;)
     data = csv.reader(f)
     
     # La primera fila del .csv contiene las cabeceras
@@ -132,7 +135,7 @@ if __name__==&#34;__main__&#34;:
             cache = []</code></pre>
 </details>
 </dd>
-<dt id="src.index_users.parse_args"><code class="name flex">
+<dt id="src.users.index_users.parse_args"><code class="name flex">
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -146,7 +149,8 @@ if __name__==&#34;__main__&#34;:
         Procesamiento de los argumentos con los que se ejecutó el script
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para obtener los usuarios que postearon en un subreddit, obtener sus datos e indexarlos en un nuevo índice&#34;)
-    parser.add_argument(&#34;-i&#34;, &#34;--index&#34;, default=&#34;reddit-users&#34;, help=&#34;Nombre del índice de Elasticsearch en el que se indexaran los usuarios&#34;)
+    parser.add_argument(&#34;-i&#34;, &#34;--index&#34;, default=&#34;users-reddit&#34;, help=&#34;Nombre del índice de Elasticsearch en el que se indexaran los usuarios&#34;)
+    parser.add_argument(&#34;-d&#34;, &#34;--data&#34;, default=&#34;dataset-users/data.csv.gz&#34;, help=&#34;Ruta del archivo con el dataset de usuarios&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch&#34;)
     return parser.parse_args()</code></pre>
 </details>
@@ -166,13 +170,13 @@ if __name__==&#34;__main__&#34;:
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src" href="index.html">src</a></code></li>
+<li><code><a title="src.users" href="index.html">src.users</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="src.index_users.main" href="#src.index_users.main">main</a></code></li>
-<li><code><a title="src.index_users.parse_args" href="#src.index_users.parse_args">parse_args</a></code></li>
+<li><code><a title="src.users.index_users.main" href="#src.users.index_users.main">main</a></code></li>
+<li><code><a title="src.users.index_users.parse_args" href="#src.users.index_users.parse_args">parse_args</a></code></li>
 </ul>
 </li>
 </ul>
