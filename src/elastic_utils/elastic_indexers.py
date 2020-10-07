@@ -289,7 +289,7 @@ class UserIndexer(Indexer):
         mappings = {
             "dynamic": False,
             "properties": {
-                "author": {
+                "name": {
                     "type": "keyword"
                 },
                 "created_utc":{

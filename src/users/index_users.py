@@ -49,7 +49,7 @@ def parse_args():
         Procesamiento de los argumentos con los que se ejecutó el script
     """
     parser = argparse.ArgumentParser(description="Script para obtener los usuarios que postearon en un subreddit, obtener sus datos e indexarlos en un nuevo índice")
-    parser.add_argument("-i", "--index", default="reddit-users", help="Nombre del índice de Elasticsearch en el que se indexaran los usuarios")
+    parser.add_argument("-i", "--index", default="users-reddit", help="Nombre del índice de Elasticsearch en el que se indexaran los usuarios")
     parser.add_argument("-d", "--data", default="dataset-users/data.csv.gz", help="Ruta del archivo con el dataset de usuarios")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="Dirección del servidor Elasticsearch")
     return parser.parse_args()
