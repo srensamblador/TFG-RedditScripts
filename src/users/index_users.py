@@ -4,6 +4,7 @@
     Parámetros
     ----------
     * -i, --index: Nombre del índice de usuarios a crear.
+    * -d, --data: Ruta del archivo con el dataset de usuarios.
     * -e, --elasticsearch: Dirección del servidor elastic contra el que indexar. Por defecto, http://localhost:9200
 """
 
@@ -26,7 +27,7 @@ def main(args):
         print("Creando índice " + indexer.index_name)
         indexer.create_index()
 
-    f = gzip.open("dataset-users/data.csv.gz", "rt")
+    f = gzip.open(args.data, "rt")
     data = csv.reader(f)
     
     # La primera fila del .csv contiene las cabeceras
@@ -49,8 +50,9 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(description="Script para obtener los usuarios que postearon en un subreddit, obtener sus datos e indexarlos en un nuevo índice")
     parser.add_argument("-i", "--index", default="reddit-users", help="Nombre del índice de Elasticsearch en el que se indexaran los usuarios")
+    parser.add_argument("-d", "--data", default="dataset-users/data.csv.gz", help="Ruta del archivo con el dataset de usuarios")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="Dirección del servidor Elasticsearch")
     return parser.parse_args()
 
 if __name__=="__main__":
-    main(parse_args)
+    main(parse_args())
