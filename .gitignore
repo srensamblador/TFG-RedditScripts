@@ -3,3 +3,4 @@ splitted_csv/*
 __pycache__/*
 dataset-users/*
 *.csv
+*.pickle
