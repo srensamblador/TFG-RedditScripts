@@ -1,28 +1,51 @@
+"""
+    Script para obtener posibles gemelos
+    ------------------------------------
+    Genera un diccionario donde para cada usuario se adjuntan sus datos y una lista de posibles candidatos. Los usuarios se recuperan
+    de un índice de Elasticsearch y los posibles candidatos de otro. 
+
+    Parámetros
+    ----------
+    * -s, --source: Nombre del índice del que se sacarán los usuarios originales
+    * -i, --user-index: Nombre del índice donde se buscarán posibles "gemelos"
+    * -o, --output: Fichero donde se serializará el diccionario resultante de la ejecución del script
+    * -m, --max-users: Número máximo de candidatos a considerar por usuario. Muy importante de cara al tiempo de máquina en esta fase y posteriores.
+    Por defecto, 500
+    * -e, --elasticsearch: Dirección del servidor elastic contra el que indexar. Por defecto, http://localhost:9200
+"""
+
 import argparse
 from elasticsearch import Elasticsearch, helpers
-from psaw import PushshiftAPI
 from datetime import date
 from datetime import datetime as dt
 from datetime import timedelta
 import progressbar as pb
-import pprint as pp
 import pickle
+import os
 
-import requests
+__author__="Samuel Cifuentes García"
 
-
-MAX_USERS = 1000
+'''
+    Especifica el número máximo de candidatos a considerar por usuario. Tiene un efecto muy importante
+    en el rendimiento tanto de este script como en fases posteriores.
+    En mi dataset, por ejemplo, para 19.000 usuarios, con un valor de MAX_USERS = 500, obtuve  2.9 millones de usuarios únicos 
+    en una hora de ejecución. En el siguiente paso, la ejecución de `posts_per_user`, se necesitaron más de 8 horas.
+    Es importante establecer un valor que lleve a un equilibrio entre exhaustividad de candidatos y tiempo de ejecución.
+'''
+MAX_USERS = 500
 
 def main(args):
-    global es, api
+    global es, MAX_USERS
     es = Elasticsearch(args.elasticsearch)
+    MAX_USERS = args.max_users
     
     # Extraer usuarios del primer índice
     print("Recuperando usuarios de /r/lonely...")
     users = get_users(args.source_users)
 
-    # Buscar usuarios "gemelos"
+    # Buscar posibles usuarios "gemelos"
     print("Obteniendo posibles gemelos...")
+    # Una barra de progreso que muestra el último usuario procesado además de la información habitual
     widgets = [
             pb.Percentage(),
             " (", pb.SimpleProgress(), ") ",
@@ -32,31 +55,38 @@ def main(args):
             pb.ETA(), " "
         ]
     bar = pb.ProgressBar(max_value=len(users), widgets=widgets)
-    i = 0
     for username in bar(users):
-        if i > 100:
-            break
         widgets[6] = pb.FormatLabel("User: " + username + " ")
         find_twins(users[username], args.user_index)
-        i +=1
-               
-    with open("users_and_possible_twins.pickle", "wb") as f:
+    
+    # Se guarda el diccionario resultante en un .pickle, formato de serialización de Python
+    print("Serializando los resultados...")
+    if not os.path.exists("pickles"):
+        os.makedirs("pickles")
+    with open("pickles/" + args.output, "wb") as f:
         pickle.dump(users, f)
 
-    set_users = set()
-    for user in users:
-        for u in users[user]["possible_twins"]:
-            set_users.add(u["name"])
-    
-    print(len(set_users))
-
-    # Filtrar por número de posts
-
-    # Escoger el mejor
-
-    pass
 
 def get_users(index):
+    """
+        Recupera los usuarios para los que se buscarán posibles gemelos.
+        Genera un diccionario donde para cada usuario se incluyen sus datos y una
+        lista vacía para almacenar candidatos
+
+        Parámetros
+        ----------
+        index: str
+            \tNombre del índice de Elasticsearch del que se sacarán los usuarios
+
+        Salida
+        ------
+        dict
+            \tDiccionario con los usuarios
+    """
+
+    # Por disparidad entre la fecha de creación de los usuarios de este índice y del otro del que recuperaré
+    # los posibles candidatos, tengo que recuperar los usuarios en función del intervalo de tiempo común
+    # en ambos índices. De ahí la consulta con rango.
     res = helpers.scan(es, index=index,
     query={
         "query":{
@@ -77,13 +107,28 @@ def get_users(index):
             "comment_karma": data["comment_karma"],
             "link_karma": data["link_karma"],
             "posts": data["posts"],
-            "possible_twins": []
+            "possible_twins": [] # Aquí se meterán los posibles gemelos
         }
     return users
 
 def find_twins(user, index):
-    MONTH_IN_SECONDS = 30*24*3600 
+    """
+        Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:
+        * __Fecha de creación.__ Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
+        Se utilizan varios intervalos, probando desde el más hasta el menos restrictivo.
+        * __Karma comentarios.__ Se buscan candidatos con un +/- 10% de karma respecto al usuario
+        * __Karma link.__ Se buscan candidatos con un +/- 10% de karma en posts respecto al usuario
+        En otro script se tratará también el número de posts como criterio antes de obtener el mejor candidato.
 
+        Parámetros
+        ----------
+        user: dict
+            Datos del usuario
+        index: str
+            Nombre del índice dónde se buscarán los candidatos
+    """
+
+    # Se obtienen los límites de los rangos para realizar las consultas en Elastic
     bounds = {
         "intervals": get_time_intervals(user["created_utc"]),
         "comment_low": user["comment_karma"] - user["comment_karma"]*0.1,
@@ -94,6 +139,8 @@ def find_twins(user, index):
 
     num_hits = 0
     i = 0
+    # Se van probando los intervalos de tiempo, empezando por el más pequeño y acabando
+    # por el más amplio, hasta agotarlos o haber alcanzado el número máximo de posibles candidatos
     while num_hits < MAX_USERS and i < len(bounds["intervals"]):
         res = es.search(index = index,
             body = {
@@ -204,20 +251,18 @@ def get_time_intervals(timestamp):
     bounds.append({"date_old": (date - timedelta(days=30)).timestamp(),
         "date_new": (date + timedelta(days=30)).timestamp()})
     
-
     return bounds
 
 def parse_args():
     """
         Procesamiento de los argumentos con los que se ejecutó el script
     """
-    parser = argparse.ArgumentParser(description="Script para obtener usuarios 'gemelos'")
+    parser = argparse.ArgumentParser(description="Script para obtener un diccionario de usuarios y sus posibles 'gemelos'")
     parser.add_argument("-s", "--source-users", default="users-r-lonely", help="Nombre del índice de Elasticsearch del que se recuperaran los usuarios de los que se quieren encontrar gemelos")
-    parser.add_argument("-u", "--user-index", default="users-reddit", help="Nombre del índice de Elasticsearch con los usuarios candidatos a ser gemelos")
+    parser.add_argument("-i", "--user-index", default="users-reddit", help="Nombre del índice de Elasticsearch con los usuarios candidatos a ser gemelos")
+    parser.add_argument("-o", "--output", default="users_and_possible_twins.pickle", help="Nombre del archivo donde se serializará el diccionario")
+    parser.add_argument("-m", "--max-users", default=500, type=int, help="Número máximo de candidatos a considerar por usuario")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="dirección del servidor Elasticsearch")
-    parser.add_argument("-b", "--before", default=date.today(), 
-        type= lambda d: dt.strptime(d, '%Y-%m-%d').date(), 
-        help="Fecha límite para obtener el número de posts de los usuarios")
     return parser.parse_args()
 
 if __name__=="__main__":

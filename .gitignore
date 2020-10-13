@@ -1,6 +1,7 @@
 dumps/*
 splitted_csv/*
-__pycache__/*
+*/__pycache__/*
 dataset-users/*
+pickles/*
 *.csv
 *.pickle
