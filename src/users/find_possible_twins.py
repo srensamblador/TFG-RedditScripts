@@ -114,10 +114,10 @@ def get_users(index):
 def find_twins(username, data, index):
     """
         Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:  
-        * __Fecha de creación.__ Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
+        - __Fecha de creación.__ Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
         Se utilizan varios intervalos, probando desde el más hasta el menos restrictivo.  
-        * __Karma comentarios.__ Se buscan candidatos con un +/- 10% de karma respecto al usuario  
-        * __Karma link.__ Se buscan candidatos con un +/- 10% de karma en posts respecto al usuario  
+        - __Karma comentarios.__ Se buscan candidatos con un +/- 10% de karma respecto al usuario  
+        - __Karma link.__ Se buscan candidatos con un +/- 10% de karma en posts respecto al usuario  
         En otro script se tratará también el número de posts como criterio antes de obtener el mejor candidato.
 
         Parámetros
