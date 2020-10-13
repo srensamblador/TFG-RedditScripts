@@ -98,7 +98,7 @@ def main(args):
     bar = pb.ProgressBar(max_value=len(users), widgets=widgets)
     for username in bar(users):
         widgets[6] = pb.FormatLabel(&#34;User: &#34; + username + &#34; &#34;)
-        find_twins(users[username], args.user_index)
+        find_twins(username, users[username], args.user_index)
     
     # Se guarda el diccionario resultante en un .pickle, formato de serialización de Python
     print(&#34;Serializando los resultados...&#34;)
@@ -152,7 +152,7 @@ def get_users(index):
         }
     return users
 
-def find_twins(user, index):
+def find_twins(username, data, index):
     &#34;&#34;&#34;
         Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:
         * __Fecha de creación.__ Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
@@ -171,11 +171,11 @@ def find_twins(user, index):
 
     # Se obtienen los límites de los rangos para realizar las consultas en Elastic
     bounds = {
-        &#34;intervals&#34;: get_time_intervals(user[&#34;created_utc&#34;]),
-        &#34;comment_low&#34;: user[&#34;comment_karma&#34;] - user[&#34;comment_karma&#34;]*0.1,
-        &#34;comment_high&#34;: user[&#34;comment_karma&#34;] + user[&#34;comment_karma&#34;]*0.1,
-        &#34;link_low&#34;: user[&#34;link_karma&#34;] - user[&#34;link_karma&#34;]*0.1,
-        &#34;link_high&#34;: user[&#34;link_karma&#34;] + user[&#34;link_karma&#34;]*0.1
+        &#34;intervals&#34;: get_time_intervals(data[&#34;created_utc&#34;]),
+        &#34;comment_low&#34;: data[&#34;comment_karma&#34;] - data[&#34;comment_karma&#34;]*0.1,
+        &#34;comment_high&#34;: data[&#34;comment_karma&#34;] + data[&#34;comment_karma&#34;]*0.1,
+        &#34;link_low&#34;: data[&#34;link_karma&#34;] - data[&#34;link_karma&#34;]*0.1,
+        &#34;link_high&#34;: data[&#34;link_karma&#34;] + data[&#34;link_karma&#34;]*0.1
     }
 
     num_hits = 0
@@ -213,7 +213,12 @@ def find_twins(user, index):
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        &#34;must_not&#34;:{
+                            &#34;match&#34;:{
+                                &#34;name&#34;: username
+                            }
+                        }
                     }
 
                 }
@@ -223,7 +228,7 @@ def find_twins(user, index):
         hits = res[&#34;hits&#34;][&#34;hits&#34;]
         i+=1
 
-    user[&#34;possible_twins&#34;] = [hit[&#34;_source&#34;] for hit in hits]
+    data[&#34;possible_twins&#34;] = [hit[&#34;_source&#34;] for hit in hits]
             
 def get_time_intervals(timestamp):
     &#34;&#34;&#34;
@@ -318,7 +323,7 @@ if __name__==&#34;__main__&#34;:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="src.users.find_possible_twins.find_twins"><code class="name flex">
-<span>def <span class="ident">find_twins</span></span>(<span>user, index)</span>
+<span>def <span class="ident">find_twins</span></span>(<span>username, data, index)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:
@@ -336,7 +341,7 @@ Nombre del índice dónde se buscarán los candidatos</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def find_twins(user, index):
+<pre><code class="python">def find_twins(username, data, index):
     &#34;&#34;&#34;
         Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:
         * __Fecha de creación.__ Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
@@ -355,11 +360,11 @@ Nombre del índice dónde se buscarán los candidatos</p></div>
 
     # Se obtienen los límites de los rangos para realizar las consultas en Elastic
     bounds = {
-        &#34;intervals&#34;: get_time_intervals(user[&#34;created_utc&#34;]),
-        &#34;comment_low&#34;: user[&#34;comment_karma&#34;] - user[&#34;comment_karma&#34;]*0.1,
-        &#34;comment_high&#34;: user[&#34;comment_karma&#34;] + user[&#34;comment_karma&#34;]*0.1,
-        &#34;link_low&#34;: user[&#34;link_karma&#34;] - user[&#34;link_karma&#34;]*0.1,
-        &#34;link_high&#34;: user[&#34;link_karma&#34;] + user[&#34;link_karma&#34;]*0.1
+        &#34;intervals&#34;: get_time_intervals(data[&#34;created_utc&#34;]),
+        &#34;comment_low&#34;: data[&#34;comment_karma&#34;] - data[&#34;comment_karma&#34;]*0.1,
+        &#34;comment_high&#34;: data[&#34;comment_karma&#34;] + data[&#34;comment_karma&#34;]*0.1,
+        &#34;link_low&#34;: data[&#34;link_karma&#34;] - data[&#34;link_karma&#34;]*0.1,
+        &#34;link_high&#34;: data[&#34;link_karma&#34;] + data[&#34;link_karma&#34;]*0.1
     }
 
     num_hits = 0
@@ -397,7 +402,12 @@ Nombre del índice dónde se buscarán los candidatos</p></div>
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        &#34;must_not&#34;:{
+                            &#34;match&#34;:{
+                                &#34;name&#34;: username
+                            }
+                        }
                     }
 
                 }
@@ -407,7 +417,7 @@ Nombre del índice dónde se buscarán los candidatos</p></div>
         hits = res[&#34;hits&#34;][&#34;hits&#34;]
         i+=1
 
-    user[&#34;possible_twins&#34;] = [hit[&#34;_source&#34;] for hit in hits]</code></pre>
+    data[&#34;possible_twins&#34;] = [hit[&#34;_source&#34;] for hit in hits]</code></pre>
 </details>
 </dd>
 <dt id="src.users.find_possible_twins.get_time_intervals"><code class="name flex">
@@ -595,7 +605,7 @@ Diccionario con los usuarios</p></div>
     bar = pb.ProgressBar(max_value=len(users), widgets=widgets)
     for username in bar(users):
         widgets[6] = pb.FormatLabel(&#34;User: &#34; + username + &#34; &#34;)
-        find_twins(users[username], args.user_index)
+        find_twins(username, users[username], args.user_index)
     
     # Se guarda el diccionario resultante en un .pickle, formato de serialización de Python
     print(&#34;Serializando los resultados...&#34;)

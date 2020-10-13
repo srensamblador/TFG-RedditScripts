@@ -59,6 +59,8 @@ from datetime import time
 from datetime import date
 import csv
 
+__author__ = &#34;Samuel Cifuentes García&#34;
+
 def main(args):
     # Debido a las limitaciones de uso de la API este script es muy costoso 
     # en cuanto a tiempo de máquina. Es importante escoger un valor adecuado
@@ -100,6 +102,9 @@ def main(args):
 
 
 def parse_args():
+    &#34;&#34;&#34;
+        Procesamiento de los argumentos con los que se ejecutó el script
+    &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script que genera un csv con candidatos a &#39;gemelo&#39; y su número de posts&#34;)
     parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;pickles/users_and_possible_twins.pickle&#34;, help=&#34;Ruta del archivo con el diccionario de &#34; 
         &#34;usuarios obtenido en el script find_possible_twins.py&#34;)
@@ -173,12 +178,15 @@ if __name__ == &#34;__main__&#34;:
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Procesamiento de los argumentos con los que se ejecutó el script</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def parse_args():
+    &#34;&#34;&#34;
+        Procesamiento de los argumentos con los que se ejecutó el script
+    &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script que genera un csv con candidatos a &#39;gemelo&#39; y su número de posts&#34;)
     parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;pickles/users_and_possible_twins.pickle&#34;, help=&#34;Ruta del archivo con el diccionario de &#34; 
         &#34;usuarios obtenido en el script find_possible_twins.py&#34;)

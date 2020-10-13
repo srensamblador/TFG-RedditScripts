@@ -175,7 +175,7 @@ def find_twins(username, data, index):
                         ],
                         "must_not":{
                             "match":{
-                                "name": 
+                                "name": username
                             }
                         }
                     }
@@ -187,7 +187,7 @@ def find_twins(username, data, index):
         hits = res["hits"]["hits"]
         i+=1
 
-    data["possible_twins"] = [hit["_source"] for hit in hits if hit["_source"]["name"] != username]
+    data["possible_twins"] = [hit["_source"] for hit in hits]
             
 def get_time_intervals(timestamp):
     """
