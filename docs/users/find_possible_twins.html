@@ -116,12 +116,12 @@ def get_users(index):
 
         Parámetros
         ----------
-        index: str
+        index: str  
             \tNombre del índice de Elasticsearch del que se sacarán los usuarios
 
         Salida
         ------
-        dict
+        dict  
             \tDiccionario con los usuarios
     &#34;&#34;&#34;
 
@@ -154,18 +154,18 @@ def get_users(index):
 
 def find_twins(username, data, index):
     &#34;&#34;&#34;
-        Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:
+        Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:  
         * __Fecha de creación.__ Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
-        Se utilizan varios intervalos, probando desde el más hasta el menos restrictivo.
-        * __Karma comentarios.__ Se buscan candidatos con un +/- 10% de karma respecto al usuario
-        * __Karma link.__ Se buscan candidatos con un +/- 10% de karma en posts respecto al usuario
+        Se utilizan varios intervalos, probando desde el más hasta el menos restrictivo.  
+        * __Karma comentarios.__ Se buscan candidatos con un +/- 10% de karma respecto al usuario  
+        * __Karma link.__ Se buscan candidatos con un +/- 10% de karma en posts respecto al usuario  
         En otro script se tratará también el número de posts como criterio antes de obtener el mejor candidato.
 
         Parámetros
         ----------
-        user: dict
+        user: dict  
             Datos del usuario
-        index: str
+        index: str  
             Nombre del índice dónde se buscarán los candidatos
     &#34;&#34;&#34;
 
@@ -242,13 +242,13 @@ def get_time_intervals(timestamp):
 
         Parámetros
         ----------
-        timestamp: int
+        timestamp: int  
             \t Timestamp de la fecha entorno a la cuál se calculan los intervalos
 
         Salida
         ------
         list
-            \tLista con los timestamps correspondientes a los límites de los rangos
+            \tLista con los timestamps correspondientes a los límites de los rangos  
     &#34;&#34;&#34;
     bounds = []
     
@@ -326,16 +326,16 @@ if __name__==&#34;__main__&#34;:
 <span>def <span class="ident">find_twins</span></span>(<span>username, data, index)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:
-* <strong>Fecha de creación.</strong> Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
-Se utilizan varios intervalos, probando desde el más hasta el menos restrictivo.
-* <strong>Karma comentarios.</strong> Se buscan candidatos con un +/- 10% de karma respecto al usuario
-* <strong>Karma link.</strong> Se buscan candidatos con un +/- 10% de karma en posts respecto al usuario
+<div class="desc"><p>Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:<br>
+<em> <strong>Fecha de creación.</strong> Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
+Se utilizan varios intervalos, probando desde el más hasta el menos restrictivo.<br>
+</em> <strong>Karma comentarios.</strong> Se buscan candidatos con un +/- 10% de karma respecto al usuario<br>
+* <strong>Karma link.</strong> Se buscan candidatos con un +/- 10% de karma en posts respecto al usuario<br>
 En otro script se tratará también el número de posts como criterio antes de obtener el mejor candidato.</p>
 <h2 id="parametros">Parámetros</h2>
-<p>user: dict
+<p>user: dict<br>
 Datos del usuario
-index: str
+index: str<br>
 Nombre del índice dónde se buscarán los candidatos</p></div>
 <details class="source">
 <summary>
@@ -343,18 +343,18 @@ Nombre del índice dónde se buscarán los candidatos</p></div>
 </summary>
 <pre><code class="python">def find_twins(username, data, index):
     &#34;&#34;&#34;
-        Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:
+        Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:  
         * __Fecha de creación.__ Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
-        Se utilizan varios intervalos, probando desde el más hasta el menos restrictivo.
-        * __Karma comentarios.__ Se buscan candidatos con un +/- 10% de karma respecto al usuario
-        * __Karma link.__ Se buscan candidatos con un +/- 10% de karma en posts respecto al usuario
+        Se utilizan varios intervalos, probando desde el más hasta el menos restrictivo.  
+        * __Karma comentarios.__ Se buscan candidatos con un +/- 10% de karma respecto al usuario  
+        * __Karma link.__ Se buscan candidatos con un +/- 10% de karma en posts respecto al usuario  
         En otro script se tratará también el número de posts como criterio antes de obtener el mejor candidato.
 
         Parámetros
         ----------
-        user: dict
+        user: dict  
             Datos del usuario
-        index: str
+        index: str  
             Nombre del índice dónde se buscarán los candidatos
     &#34;&#34;&#34;
 
@@ -432,7 +432,7 @@ Nombre del índice dónde se buscarán los candidatos</p></div>
 * +/- 15 días en el mismo mes
 * +/- 30 días</p>
 <h2 id="parametros">Parámetros</h2>
-<p>timestamp: int
+<p>timestamp: int<br>
 Timestamp de la fecha entorno a la cuál se calculan los intervalos</p>
 <h2 id="salida">Salida</h2>
 <p>list
@@ -453,13 +453,13 @@ Lista con los timestamps correspondientes a los límites de los rangos</p></div>
 
         Parámetros
         ----------
-        timestamp: int
+        timestamp: int  
             \t Timestamp de la fecha entorno a la cuál se calculan los intervalos
 
         Salida
         ------
         list
-            \tLista con los timestamps correspondientes a los límites de los rangos
+            \tLista con los timestamps correspondientes a los límites de los rangos  
     &#34;&#34;&#34;
     bounds = []
     
@@ -519,10 +519,10 @@ Lista con los timestamps correspondientes a los límites de los rangos</p></div>
 Genera un diccionario donde para cada usuario se incluyen sus datos y una
 lista vacía para almacenar candidatos</p>
 <h2 id="parametros">Parámetros</h2>
-<p>index: str
+<p>index: str<br>
 Nombre del índice de Elasticsearch del que se sacarán los usuarios</p>
 <h2 id="salida">Salida</h2>
-<p>dict
+<p>dict<br>
 Diccionario con los usuarios</p></div>
 <details class="source">
 <summary>
@@ -536,12 +536,12 @@ Diccionario con los usuarios</p></div>
 
         Parámetros
         ----------
-        index: str
+        index: str  
             \tNombre del índice de Elasticsearch del que se sacarán los usuarios
 
         Salida
         ------
-        dict
+        dict  
             \tDiccionario con los usuarios
     &#34;&#34;&#34;
 

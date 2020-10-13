@@ -86,9 +86,9 @@ def filter_twins(users, posts_per_twin):
 
         Parámetros
         ----------
-        users: dict
+        users: dict  
             \tDiccionario con usuarios, sus datos y sus posibles candidatos
-        posts_per_twin: dict
+        posts_per_twin: dict  
             \tDiccionario de usuarios candidatos con su número de posts
     &#34;&#34;&#34;
     bar = pb.ProgressBar()
@@ -122,12 +122,12 @@ def find_best_twins(users):
 
         Parámetros
         ----------
-        users: dict
+        users: dict  
             \tDiccionario con los usuarios, sus datos y sus posibles gemelos
         
         Salida
         ------
-        dict
+        dict  
             \tDiccionario con los usuarios y para cada uno de ellos, su mejor gemelo y la distancia que los separa
     &#34;&#34;&#34;
     best_twins = {}
@@ -201,12 +201,12 @@ def load_csv(path):
 
         Parámetros
         ----------
-        path: str
+        path: str  
             \tRuta del archivo .csv con los datos
         
         Salida
         ------
-        dict
+        dict  
             \tDiccionario donde para cada nombre de usuario se guarda su número de posts
     &#34;&#34;&#34;
     twin_posts = {}
@@ -223,9 +223,9 @@ def dump_to_file(path, twins):
 
         Parámetros
         ----------
-        path: str
+        path: str  
             \tRuta del fichero de salida
-        twins: dict
+        twins: dict  
             \tDiccionario con los usuarios, su mejor gemelo y la distancia que los separa
     &#34;&#34;&#34;
     with open(path, &#34;w&#34;) as f:
@@ -261,9 +261,9 @@ if __name__ == &#34;__main__&#34;:
 <dd>
 <div class="desc"><p>Vuelca el resultado a un fichero .csv</p>
 <h2 id="parametros">Parámetros</h2>
-<p>path: str
+<p>path: str<br>
 Ruta del fichero de salida
-twins: dict
+twins: dict<br>
 Diccionario con los usuarios, su mejor gemelo y la distancia que los separa</p></div>
 <details class="source">
 <summary>
@@ -275,9 +275,9 @@ Diccionario con los usuarios, su mejor gemelo y la distancia que los separa</p><
 
         Parámetros
         ----------
-        path: str
+        path: str  
             \tRuta del fichero de salida
-        twins: dict
+        twins: dict  
             \tDiccionario con los usuarios, su mejor gemelo y la distancia que los separa
     &#34;&#34;&#34;
     with open(path, &#34;w&#34;) as f:
@@ -294,9 +294,9 @@ Diccionario con los usuarios, su mejor gemelo y la distancia que los separa</p><
 elimina aquellos candidatos a "gemelo" que no cumplan el criterio de número de posts
 en un rango de +/-10% respecto al del usuario original</p>
 <h2 id="parametros">Parámetros</h2>
-<p>users: dict
+<p>users: dict<br>
 Diccionario con usuarios, sus datos y sus posibles candidatos
-posts_per_twin: dict
+posts_per_twin: dict<br>
 Diccionario de usuarios candidatos con su número de posts</p></div>
 <details class="source">
 <summary>
@@ -310,9 +310,9 @@ Diccionario de usuarios candidatos con su número de posts</p></div>
 
         Parámetros
         ----------
-        users: dict
+        users: dict  
             \tDiccionario con usuarios, sus datos y sus posibles candidatos
-        posts_per_twin: dict
+        posts_per_twin: dict  
             \tDiccionario de usuarios candidatos con su número de posts
     &#34;&#34;&#34;
     bar = pb.ProgressBar()
@@ -347,10 +347,10 @@ los candidatos y el usuario, seleccionando el que tenga menor distancia.
 Las variables utilizadas para calcular la distancia son la fecha de creación del usuario,
 su karma, tanto en posts como en comentarios y el número de posts del usuario.</p>
 <h2 id="parametros">Parámetros</h2>
-<p>users: dict
+<p>users: dict<br>
 Diccionario con los usuarios, sus datos y sus posibles gemelos</p>
 <h2 id="salida">Salida</h2>
-<p>dict
+<p>dict<br>
 Diccionario con los usuarios y para cada uno de ellos, su mejor gemelo y la distancia que los separa</p></div>
 <details class="source">
 <summary>
@@ -366,12 +366,12 @@ Diccionario con los usuarios y para cada uno de ellos, su mejor gemelo y la dist
 
         Parámetros
         ----------
-        users: dict
+        users: dict  
             \tDiccionario con los usuarios, sus datos y sus posibles gemelos
         
         Salida
         ------
-        dict
+        dict  
             \tDiccionario con los usuarios y para cada uno de ellos, su mejor gemelo y la distancia que los separa
     &#34;&#34;&#34;
     best_twins = {}
@@ -446,10 +446,10 @@ Diccionario con los usuarios y para cada uno de ellos, su mejor gemelo y la dist
 <dd>
 <div class="desc"><p>Carga los datos contenidos en el .csv con candidatos y sus números de post</p>
 <h2 id="parametros">Parámetros</h2>
-<p>path: str
+<p>path: str<br>
 Ruta del archivo .csv con los datos</p>
 <h2 id="salida">Salida</h2>
-<p>dict
+<p>dict<br>
 Diccionario donde para cada nombre de usuario se guarda su número de posts</p></div>
 <details class="source">
 <summary>
@@ -461,12 +461,12 @@ Diccionario donde para cada nombre de usuario se guarda su número de posts</p><
 
         Parámetros
         ----------
-        path: str
+        path: str  
             \tRuta del archivo .csv con los datos
         
         Salida
         ------
-        dict
+        dict  
             \tDiccionario donde para cada nombre de usuario se guarda su número de posts
     &#34;&#34;&#34;
     twin_posts = {}
