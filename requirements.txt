@@ -1,3 +1,4 @@
 psaw
 elasticsearch
 progressbar
+numpy
