@@ -30,7 +30,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Generate docs
       run : |
-        if [ -d docs ]; then rm -r docs/*; fi
+        if [ -d docs ]; then rm -r docs/*; else mkdir docs; fi
         pdoc --html --output-dir docs src
         mv docs/src/* docs
         rm -d docs/src
