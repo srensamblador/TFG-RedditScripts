@@ -65,9 +65,7 @@ def filter_twins(users, posts_per_twin):
             possible_twin["posts"] = twin_posts
             # Criterio: Número de posts +/- 10% del usuario original
             if twin_posts >= user_posts - user_posts * 0.1 and twin_posts <= user_posts + user_posts * 0.1:
-                # Ya que puede haber encontrado el propio usuario dentro del otro índice de Elastic
-                if user != possible_twin["name"]:
-                    filtered_list.append(possible_twin)
+                filtered_list.append(possible_twin)
         
         users[user]["possible_twins"] = filtered_list
 
