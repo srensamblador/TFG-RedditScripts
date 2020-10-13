@@ -20,6 +20,8 @@ from datetime import time
 from datetime import date
 import csv
 
+__author__ = "Samuel Cifuentes García"
+
 def main(args):
     # Debido a las limitaciones de uso de la API este script es muy costoso 
     # en cuanto a tiempo de máquina. Es importante escoger un valor adecuado
@@ -61,6 +63,9 @@ def main(args):
 
 
 def parse_args():
+    """
+        Procesamiento de los argumentos con los que se ejecutó el script
+    """
     parser = argparse.ArgumentParser(description="Script que genera un csv con candidatos a 'gemelo' y su número de posts")
     parser.add_argument("-s", "--source", default="pickles/users_and_possible_twins.pickle", help="Ruta del archivo con el diccionario de " 
         "usuarios obtenido en el script find_possible_twins.py")

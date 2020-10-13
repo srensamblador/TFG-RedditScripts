@@ -57,7 +57,7 @@ def main(args):
     bar = pb.ProgressBar(max_value=len(users), widgets=widgets)
     for username in bar(users):
         widgets[6] = pb.FormatLabel("User: " + username + " ")
-        find_twins(users[username], args.user_index)
+        find_twins(username, users[username], args.user_index)
     
     # Se guarda el diccionario resultante en un .pickle, formato de serialización de Python
     print("Serializando los resultados...")
@@ -111,7 +111,7 @@ def get_users(index):
         }
     return users
 
-def find_twins(user, index):
+def find_twins(username, data, index):
     """
         Obtiene posibles candidatos para un usuario. Se utilizan varios criterios:
         * __Fecha de creación.__ Se buscan candidatos cuyas cuentas fueron creadas dentro del mismo intervalo de tiempo que el usuario.
@@ -130,11 +130,11 @@ def find_twins(user, index):
 
     # Se obtienen los límites de los rangos para realizar las consultas en Elastic
     bounds = {
-        "intervals": get_time_intervals(user["created_utc"]),
-        "comment_low": user["comment_karma"] - user["comment_karma"]*0.1,
-        "comment_high": user["comment_karma"] + user["comment_karma"]*0.1,
-        "link_low": user["link_karma"] - user["link_karma"]*0.1,
-        "link_high": user["link_karma"] + user["link_karma"]*0.1
+        "intervals": get_time_intervals(data["created_utc"]),
+        "comment_low": data["comment_karma"] - data["comment_karma"]*0.1,
+        "comment_high": data["comment_karma"] + data["comment_karma"]*0.1,
+        "link_low": data["link_karma"] - data["link_karma"]*0.1,
+        "link_high": data["link_karma"] + data["link_karma"]*0.1
     }
 
     num_hits = 0
@@ -172,7 +172,12 @@ def find_twins(user, index):
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "must_not":{
+                            "match":{
+                                "name": 
+                            }
+                        }
                     }
 
                 }
@@ -182,7 +187,7 @@ def find_twins(user, index):
         hits = res["hits"]["hits"]
         i+=1
 
-    user["possible_twins"] = [hit["_source"] for hit in hits]
+    data["possible_twins"] = [hit["_source"] for hit in hits if hit["_source"]["name"] != username]
             
 def get_time_intervals(timestamp):
     """
