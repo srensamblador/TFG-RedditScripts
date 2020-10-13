@@ -75,12 +75,12 @@ def get_users(index):
 
         Parámetros
         ----------
-        index: str
+        index: str  
             \tNombre del índice de Elasticsearch del que se sacarán los usuarios
 
         Salida
         ------
-        dict
+        dict  
             \tDiccionario con los usuarios
     """
 
@@ -122,9 +122,9 @@ def find_twins(username, data, index):
 
         Parámetros
         ----------
-        user: dict
+        user: dict  
             Datos del usuario
-        index: str
+        index: str  
             Nombre del índice dónde se buscarán los candidatos
     """
 
@@ -201,13 +201,13 @@ def get_time_intervals(timestamp):
 
         Parámetros
         ----------
-        timestamp: int
+        timestamp: int  
             \t Timestamp de la fecha entorno a la cuál se calculan los intervalos
 
         Salida
         ------
         list
-            \tLista con los timestamps correspondientes a los límites de los rangos
+            \tLista con los timestamps correspondientes a los límites de los rangos  
     """
     bounds = []
     

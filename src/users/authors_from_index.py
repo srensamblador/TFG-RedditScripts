@@ -124,7 +124,7 @@ def get_user_data(authors, before_date):
         
         Salida
         ------
-        list
+        list  
             Lista de usuarios junto con sus datos
     """
     users=[]

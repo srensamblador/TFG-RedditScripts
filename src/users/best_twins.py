@@ -45,9 +45,9 @@ def filter_twins(users, posts_per_twin):
 
         Parámetros
         ----------
-        users: dict
+        users: dict  
             \tDiccionario con usuarios, sus datos y sus posibles candidatos
-        posts_per_twin: dict
+        posts_per_twin: dict  
             \tDiccionario de usuarios candidatos con su número de posts
     """
     bar = pb.ProgressBar()
@@ -81,12 +81,12 @@ def find_best_twins(users):
 
         Parámetros
         ----------
-        users: dict
+        users: dict  
             \tDiccionario con los usuarios, sus datos y sus posibles gemelos
         
         Salida
         ------
-        dict
+        dict  
             \tDiccionario con los usuarios y para cada uno de ellos, su mejor gemelo y la distancia que los separa
     """
     best_twins = {}
@@ -160,12 +160,12 @@ def load_csv(path):
 
         Parámetros
         ----------
-        path: str
+        path: str  
             \tRuta del archivo .csv con los datos
         
         Salida
         ------
-        dict
+        dict  
             \tDiccionario donde para cada nombre de usuario se guarda su número de posts
     """
     twin_posts = {}
@@ -182,9 +182,9 @@ def dump_to_file(path, twins):
 
         Parámetros
         ----------
-        path: str
+        path: str  
             \tRuta del fichero de salida
-        twins: dict
+        twins: dict  
             \tDiccionario con los usuarios, su mejor gemelo y la distancia que los separa
     """
     with open(path, "w") as f:
