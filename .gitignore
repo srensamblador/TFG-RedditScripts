@@ -1,4 +1,5 @@
 dumps/*
+docs/*
 splitted_csv/*
 */__pycache__/*
 dataset-users/*
