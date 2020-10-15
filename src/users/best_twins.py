@@ -11,7 +11,8 @@
     ----------
     * -u, --users: Ruta del archivo .pickle con la salida del script `find_possible_twins`
     * -p, --posts: Ruta del .csv con posts por usuario obtenido de `posts_per_user`
-    * -o, --output: Fichero donde se volcará en .csv la lista de usuarios con sus mejores "gemelos"
+    * -o, --output: Fichero .csv dónde se volcarán todos los datos de los usuarios y sus gemelos resultantes
+    * --summary: Fichero .csv dónde se volcará la lista de usuarios con sus mejores "gemelos"
 """
 import argparse
 import pickle
@@ -35,7 +36,8 @@ def main(args):
     best_twins = find_best_twins(users)
 
     print("Volcando resultados...")
-    dump_to_file(args.output, best_twins)
+    dump_twin_summary(args.summary, best_twins)
+    dump_full_data(args.output, users, best_twins)
 
 def filter_twins(users, posts_per_twin):
     """
@@ -174,7 +176,7 @@ def load_csv(path):
             twin_posts[user] = int(posts)
     return twin_posts
 
-def dump_to_file(path, twins):
+def dump_twin_summary(path, twins):
     """
         Vuelca el resultado a un fichero .csv
 
@@ -190,6 +192,17 @@ def dump_to_file(path, twins):
         for user in twins:
             f.write(";".join((str(user), str(twins[user]["name"]), str(twins[user]["distance"]),"\n")))
 
+def dump_full_data(path, users, twins):
+    with open(path, "w") as f:
+        # Cabeceras
+        f.write("Usuario;Fecha de creación;Valores de karma;Num. posts;Muestra;Usuario emparejado\n")
+        for user in users:
+            data= users[user]
+            user_data = [
+                user
+            ]
+
+
 def parse_args():
     """
         Procesamiento de los argumentos con los que se ejecutó el script
@@ -198,7 +211,8 @@ def parse_args():
     parser.add_argument("-u", "--users", default="pickles/users_and_possible_twins.pickle", help="Ruta del archivo con el diccionario de " 
         "usuarios obtenido en el script find_possible_twins.py")
     parser.add_argument("-p", "--posts", default="posts_per_user.csv", help="Ruta del archivo con el número de posts por candidato")
-    parser.add_argument("-o", "--output", default="twins.csv", help="Archivo con los usuarios y su mejor gemelo")
+    parser.add_argument("-o", "--output", default="users_data.csv", help="Archivo .csv donde se volcarán todos los datos de los usuarios y su gemelo")
+    parser.add_argument("--summary", default="twins.csv", help="Archivo .csv donde se volcarán los usuarios y su mejor gemelo")
     return parser.parse_args()
 
 if __name__ == "__main__":
