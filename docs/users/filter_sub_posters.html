@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>src.users API documentation</title>
+<title>src.users.filter_sub_posters API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,46 +19,70 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.users</code></h1>
+<h1 class="title">Module <code>src.users.filter_sub_posters</code></h1>
 </header>
 <section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from psaw import PushshiftAPI
+from datetime import datetime as dt
+
+def main():
+    twins = []
+    with open(&#34;twins.csv&#34;) as f:
+        next(f)
+        for line in f:
+            twins.append(line.split(&#34;;&#34;)[1])
+    
+    api = PushshiftAPI()
+    before_date = dt(year=2019, month=12, day=31, hour=23, minute=59, second=59)
+    prev = 0
+    for i in range(len(twins), step=100):
+        api.search_submissions(author=twins[0:i], aggs=&#34;subreddit&#34;, before = int(before_date.timestamp()))
+        #https://api.pushshift.io/reddit/search/submission/?author=watchful1,kaisserds&amp;subreddit=competitiveoverwatch&amp;aggs=author,subreddit
+
+        prev = i
+
+if __name__ == &#34;__main__&#34;:
+    main()</code></pre>
+</details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="src.users.authors_from_index" href="authors_from_index.html">src.users.authors_from_index</a></code></dt>
-<dd>
-<div class="desc"><p>Script utilizado para obtener una lista de usuarios a partir de una consulta de un índice de documentos,
-y que crea un nuevo índice, de usuarios, con …</p></div>
-</dd>
-<dt><code class="name"><a title="src.users.best_twins" href="best_twins.html">src.users.best_twins</a></code></dt>
-<dd>
-<div class="desc"><p>Script para encontrar los mejores "gemelos" de un conjunto de usuarios</p>
-<p>A partir de los resultados de los scripts <code><a title="src.users.find_possible_twins" href="find_possible_twins.html">src.users.find_possible_twins</a></code> y …</p></div>
-</dd>
-<dt><code class="name"><a title="src.users.filter_sub_posters" href="filter_sub_posters.html">src.users.filter_sub_posters</a></code></dt>
+<dt id="src.users.filter_sub_posters.main"><code class="name flex">
+<span>def <span class="ident">main</span></span>(<span>)</span>
+</code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="src.users.find_possible_twins" href="find_possible_twins.html">src.users.find_possible_twins</a></code></dt>
-<dd>
-<div class="desc"><p>Script para obtener posibles gemelos</p>
-<p>Genera un diccionario donde para cada usuario se adjuntan sus datos y una lista de posibles candidatos. Los …</p></div>
-</dd>
-<dt><code class="name"><a title="src.users.index_users" href="index_users.html">src.users.index_users</a></code></dt>
-<dd>
-<div class="desc"><p>Script que crea un índice de usuarios de Reddit a partir de un dataset almacenado en un fichero …</p></div>
-</dd>
-<dt><code class="name"><a title="src.users.posts_per_user" href="posts_per_user.html">src.users.posts_per_user</a></code></dt>
-<dd>
-<div class="desc"><p>Script para recuperar el número de posts de un conjunto de candidatos</p>
-<p>A partir del diccionario de usuarios obtenidos tras la ejecución de …</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def main():
+    twins = []
+    with open(&#34;twins.csv&#34;) as f:
+        next(f)
+        for line in f:
+            twins.append(line.split(&#34;;&#34;)[1])
+    
+    api = PushshiftAPI()
+    before_date = dt(year=2019, month=12, day=31, hour=23, minute=59, second=59)
+    prev = 0
+    for i in range(len(twins), step=100):
+        api.search_submissions(author=twins[0:i], aggs=&#34;subreddit&#34;, before = int(before_date.timestamp()))
+        #https://api.pushshift.io/reddit/search/submission/?author=watchful1,kaisserds&amp;subreddit=competitiveoverwatch&amp;aggs=author,subreddit
+
+        prev = i</code></pre>
+</details>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -71,17 +95,12 @@ y que crea un nuevo índice, de usuarios, con …</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src" href="../index.html">src</a></code></li>
+<li><code><a title="src.users" href="index.html">src.users</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="src.users.authors_from_index" href="authors_from_index.html">src.users.authors_from_index</a></code></li>
-<li><code><a title="src.users.best_twins" href="best_twins.html">src.users.best_twins</a></code></li>
-<li><code><a title="src.users.filter_sub_posters" href="filter_sub_posters.html">src.users.filter_sub_posters</a></code></li>
-<li><code><a title="src.users.find_possible_twins" href="find_possible_twins.html">src.users.find_possible_twins</a></code></li>
-<li><code><a title="src.users.index_users" href="index_users.html">src.users.index_users</a></code></li>
-<li><code><a title="src.users.posts_per_user" href="posts_per_user.html">src.users.posts_per_user</a></code></li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="src.users.filter_sub_posters.main" href="#src.users.filter_sub_posters.main">main</a></code></li>
 </ul>
 </li>
 </ul>
