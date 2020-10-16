@@ -113,6 +113,7 @@ def filter_twins(users, posts_per_twin):
         
         users[user][&#34;possible_twins&#34;] = filtered_list
 
+
 def find_best_twins(users):
     &#34;&#34;&#34;
         Obtiene el mejor &#34;gemelo&#34; para cada usuario de entrada. Para ello,
@@ -229,20 +230,43 @@ def dump_twin_summary(path, twins):
         twins: dict  
             \tDiccionario con los usuarios, su mejor gemelo y la distancia que los separa
     &#34;&#34;&#34;
-    with open(path, &#34;w&#34;) as f:
+    with open(path, &#34;w&#34;, encoding=&#34;UTF-8&#34;) as f:
         f.write(&#34;Usuario;Gemelo;Distancia\n&#34;)
         for user in twins:
             f.write(&#34;;&#34;.join((str(user), str(twins[user][&#34;name&#34;]), str(twins[user][&#34;distance&#34;]),&#34;\n&#34;)))
 
 def dump_full_data(path, users, twins):
-    with open(path, &#34;w&#34;) as f:
+    with open(path, &#34;w&#34;, encoding=&#34;UTF-8&#34;) as f:
         # Cabeceras
         f.write(&#34;Usuario;Fecha de creación;Valores de karma;Num. posts;Muestra;Usuario emparejado\n&#34;)
-        for user in users:
+        for user in twins:
+            # El usuario
             data= users[user]
             user_data = [
-                user
+                user,
+                data[&#34;created_utc&#34;],
+                data[&#34;comment_karma&#34;],
+                data[&#34;link_karma&#34;],
+                &#34;Sí&#34;,
+                twins[user][&#34;name&#34;],
+                &#34;\n&#34;
             ]
+            user_data = [str(field) for field in user_data]
+            f.write(&#34;;&#34;.join(user_data))
+
+            # Su gemelo
+            twin = next((twin for twin in data[&#34;possible_twins&#34;] if twin[&#34;name&#34;] == twins[user][&#34;name&#34;]), None)
+            twin_data = [
+                twin[&#34;name&#34;],
+                twin[&#34;created_utc&#34;],
+                twin[&#34;comment_karma&#34;],
+                twin[&#34;link_karma&#34;],
+                &#34;No&#34;,
+                user,
+                &#34;\n&#34;
+            ]
+            twin_data = [str(field) for field in twin_data]
+            f.write(&#34;;&#34;.join(twin_data))
 
 
 def parse_args():
@@ -278,14 +302,37 @@ if __name__ == &#34;__main__&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def dump_full_data(path, users, twins):
-    with open(path, &#34;w&#34;) as f:
+    with open(path, &#34;w&#34;, encoding=&#34;UTF-8&#34;) as f:
         # Cabeceras
         f.write(&#34;Usuario;Fecha de creación;Valores de karma;Num. posts;Muestra;Usuario emparejado\n&#34;)
-        for user in users:
+        for user in twins:
+            # El usuario
             data= users[user]
             user_data = [
-                user
-            ]</code></pre>
+                user,
+                data[&#34;created_utc&#34;],
+                data[&#34;comment_karma&#34;],
+                data[&#34;link_karma&#34;],
+                &#34;Sí&#34;,
+                twins[user][&#34;name&#34;],
+                &#34;\n&#34;
+            ]
+            user_data = [str(field) for field in user_data]
+            f.write(&#34;;&#34;.join(user_data))
+
+            # Su gemelo
+            twin = next((twin for twin in data[&#34;possible_twins&#34;] if twin[&#34;name&#34;] == twins[user][&#34;name&#34;]), None)
+            twin_data = [
+                twin[&#34;name&#34;],
+                twin[&#34;created_utc&#34;],
+                twin[&#34;comment_karma&#34;],
+                twin[&#34;link_karma&#34;],
+                &#34;No&#34;,
+                user,
+                &#34;\n&#34;
+            ]
+            twin_data = [str(field) for field in twin_data]
+            f.write(&#34;;&#34;.join(twin_data))</code></pre>
 </details>
 </dd>
 <dt id="src.users.best_twins.dump_twin_summary"><code class="name flex">
@@ -313,7 +360,7 @@ Diccionario con los usuarios, su mejor gemelo y la distancia que los separa</p><
         twins: dict  
             \tDiccionario con los usuarios, su mejor gemelo y la distancia que los separa
     &#34;&#34;&#34;
-    with open(path, &#34;w&#34;) as f:
+    with open(path, &#34;w&#34;, encoding=&#34;UTF-8&#34;) as f:
         f.write(&#34;Usuario;Gemelo;Distancia\n&#34;)
         for user in twins:
             f.write(&#34;;&#34;.join((str(user), str(twins[user][&#34;name&#34;]), str(twins[user][&#34;distance&#34;]),&#34;\n&#34;)))</code></pre>

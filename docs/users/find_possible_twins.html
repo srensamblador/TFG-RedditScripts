@@ -100,11 +100,12 @@ def main(args):
         widgets[6] = pb.FormatLabel(&#34;User: &#34; + username + &#34; &#34;)
         find_twins(username, users[username], args.user_index)
     
+    print(&#34;Filtrando usuarios que hayan posteado en el subreddit...&#34;)
+    filter_subreddit_posters(users)
+
     # Se guarda el diccionario resultante en un .pickle, formato de serialización de Python
     print(&#34;Serializando los resultados...&#34;)
-    if not os.path.exists(&#34;pickles&#34;):
-        os.makedirs(&#34;pickles&#34;)
-    with open(&#34;pickles/&#34; + args.output, &#34;wb&#34;) as f:
+    with open(args.output, &#34;wb&#34;) as f:
         pickle.dump(users, f)
 
 
@@ -299,6 +300,30 @@ def get_time_intervals(timestamp):
     
     return bounds
 
+def filter_subreddit_posters(users):
+    &#34;&#34;&#34;
+        Elimina aquellos candidatos que hayan posteado en el subreddit
+
+        Parámetros
+        ----------
+        users: dict
+            \nEl diccionario con los usuarios, sus datos y sus candidatos
+    &#34;&#34;&#34;
+    bar = pb.ProgressBar()
+    for user in bar(users):
+        possible_twins = users[user][&#34;possible_twins&#34;]
+
+        twins_to_delete = []
+        for twin in possible_twins:
+            # Si el nombre del posible gemelo es una de las claves del diccionario significa que
+            # es uno de los usuarios que postearon en /r/lonely
+            if twin[&#34;name&#34;] in users:
+                twins_to_delete.append(twin)
+        
+        if len(twins_to_delete) &gt; 0:
+            users[user][&#34;possible_twins&#34;] = [twin for twin in possible_twins if twin not in twins_to_delete]        
+        
+
 def parse_args():
     &#34;&#34;&#34;
         Procesamiento de los argumentos con los que se ejecutó el script
@@ -306,7 +331,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=&#34;Script para obtener un diccionario de usuarios y sus posibles &#39;gemelos&#39;&#34;)
     parser.add_argument(&#34;-s&#34;, &#34;--source-users&#34;, default=&#34;users-r-lonely&#34;, help=&#34;Nombre del índice de Elasticsearch del que se recuperaran los usuarios de los que se quieren encontrar gemelos&#34;)
     parser.add_argument(&#34;-i&#34;, &#34;--user-index&#34;, default=&#34;users-reddit&#34;, help=&#34;Nombre del índice de Elasticsearch con los usuarios candidatos a ser gemelos&#34;)
-    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;users_and_possible_twins.pickle&#34;, help=&#34;Nombre del archivo donde se serializará el diccionario&#34;)
+    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;pickles/users_and_possible_twins.pickle&#34;, help=&#34;Nombre del archivo donde se serializará el diccionario&#34;)
     parser.add_argument(&#34;-m&#34;, &#34;--max-users&#34;, default=500, type=int, help=&#34;Número máximo de candidatos a considerar por usuario&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;dirección del servidor Elasticsearch&#34;)
     return parser.parse_args()
@@ -322,6 +347,44 @@ if __name__==&#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="src.users.find_possible_twins.filter_subreddit_posters"><code class="name flex">
+<span>def <span class="ident">filter_subreddit_posters</span></span>(<span>users)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Elimina aquellos candidatos que hayan posteado en el subreddit</p>
+<pre><code>    Parámetros
+    ----------
+    users: dict
+</code></pre>
+<p>El diccionario con los usuarios, sus datos y sus candidatos</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filter_subreddit_posters(users):
+    &#34;&#34;&#34;
+        Elimina aquellos candidatos que hayan posteado en el subreddit
+
+        Parámetros
+        ----------
+        users: dict
+            \nEl diccionario con los usuarios, sus datos y sus candidatos
+    &#34;&#34;&#34;
+    bar = pb.ProgressBar()
+    for user in bar(users):
+        possible_twins = users[user][&#34;possible_twins&#34;]
+
+        twins_to_delete = []
+        for twin in possible_twins:
+            # Si el nombre del posible gemelo es una de las claves del diccionario significa que
+            # es uno de los usuarios que postearon en /r/lonely
+            if twin[&#34;name&#34;] in users:
+                twins_to_delete.append(twin)
+        
+        if len(twins_to_delete) &gt; 0:
+            users[user][&#34;possible_twins&#34;] = [twin for twin in possible_twins if twin not in twins_to_delete]        </code></pre>
+</details>
+</dd>
 <dt id="src.users.find_possible_twins.find_twins"><code class="name flex">
 <span>def <span class="ident">find_twins</span></span>(<span>username, data, index)</span>
 </code></dt>
@@ -607,11 +670,12 @@ Diccionario con los usuarios</p></div>
         widgets[6] = pb.FormatLabel(&#34;User: &#34; + username + &#34; &#34;)
         find_twins(username, users[username], args.user_index)
     
+    print(&#34;Filtrando usuarios que hayan posteado en el subreddit...&#34;)
+    filter_subreddit_posters(users)
+
     # Se guarda el diccionario resultante en un .pickle, formato de serialización de Python
     print(&#34;Serializando los resultados...&#34;)
-    if not os.path.exists(&#34;pickles&#34;):
-        os.makedirs(&#34;pickles&#34;)
-    with open(&#34;pickles/&#34; + args.output, &#34;wb&#34;) as f:
+    with open(args.output, &#34;wb&#34;) as f:
         pickle.dump(users, f)</code></pre>
 </details>
 </dd>
@@ -631,7 +695,7 @@ Diccionario con los usuarios</p></div>
     parser = argparse.ArgumentParser(description=&#34;Script para obtener un diccionario de usuarios y sus posibles &#39;gemelos&#39;&#34;)
     parser.add_argument(&#34;-s&#34;, &#34;--source-users&#34;, default=&#34;users-r-lonely&#34;, help=&#34;Nombre del índice de Elasticsearch del que se recuperaran los usuarios de los que se quieren encontrar gemelos&#34;)
     parser.add_argument(&#34;-i&#34;, &#34;--user-index&#34;, default=&#34;users-reddit&#34;, help=&#34;Nombre del índice de Elasticsearch con los usuarios candidatos a ser gemelos&#34;)
-    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;users_and_possible_twins.pickle&#34;, help=&#34;Nombre del archivo donde se serializará el diccionario&#34;)
+    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;pickles/users_and_possible_twins.pickle&#34;, help=&#34;Nombre del archivo donde se serializará el diccionario&#34;)
     parser.add_argument(&#34;-m&#34;, &#34;--max-users&#34;, default=500, type=int, help=&#34;Número máximo de candidatos a considerar por usuario&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;dirección del servidor Elasticsearch&#34;)
     return parser.parse_args()</code></pre>
@@ -658,6 +722,7 @@ Diccionario con los usuarios</p></div>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="src.users.find_possible_twins.filter_subreddit_posters" href="#src.users.find_possible_twins.filter_subreddit_posters">filter_subreddit_posters</a></code></li>
 <li><code><a title="src.users.find_possible_twins.find_twins" href="#src.users.find_possible_twins.find_twins">find_twins</a></code></li>
 <li><code><a title="src.users.find_possible_twins.get_time_intervals" href="#src.users.find_possible_twins.get_time_intervals">get_time_intervals</a></code></li>
 <li><code><a title="src.users.find_possible_twins.get_users" href="#src.users.find_possible_twins.get_users">get_users</a></code></li>
