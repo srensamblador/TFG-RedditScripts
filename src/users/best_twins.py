@@ -37,7 +37,7 @@ def main(args):
 
     print("Volcando resultados...")
     dump_twin_summary(args.summary, best_twins)
-    dump_full_data(args.output, users, best_twins)
+    #dump_full_data(args.output, users, best_twins)
 
 def filter_twins(users, posts_per_twin):
     """
@@ -70,6 +70,18 @@ def filter_twins(users, posts_per_twin):
                 filtered_list.append(possible_twin)
         
         users[user]["possible_twins"] = filtered_list
+
+def test(users):
+    best_twins = find_best_twins(users)
+
+    subreddit_posters = filter_sub_posters(best_twins)
+
+def filter_sub_posters(twin_matches):
+    twins_to_test = []
+    for user, match in twin_matches.items():
+        
+
+
 
 def find_best_twins(users):
     """
@@ -187,13 +199,13 @@ def dump_twin_summary(path, twins):
         twins: dict  
             \tDiccionario con los usuarios, su mejor gemelo y la distancia que los separa
     """
-    with open(path, "w") as f:
+    with open(path, "w", encoding="UTF-8") as f:
         f.write("Usuario;Gemelo;Distancia\n")
         for user in twins:
             f.write(";".join((str(user), str(twins[user]["name"]), str(twins[user]["distance"]),"\n")))
 
 def dump_full_data(path, users, twins):
-    with open(path, "w") as f:
+    with open(path, "w", encoding="UTF-8") as f:
         # Cabeceras
         f.write("Usuario;Fecha de creación;Valores de karma;Num. posts;Muestra;Usuario emparejado\n")
         for user in users:

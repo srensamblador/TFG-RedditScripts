@@ -59,11 +59,12 @@ def main(args):
         widgets[6] = pb.FormatLabel("User: " + username + " ")
         find_twins(username, users[username], args.user_index)
     
+    print("Filtrando usuarios que hayan posteado en el subreddit...")
+    filter_subreddit_posters(users)
+
     # Se guarda el diccionario resultante en un .pickle, formato de serialización de Python
     print("Serializando los resultados...")
-    if not os.path.exists("pickles"):
-        os.makedirs("pickles")
-    with open("pickles/" + args.output, "wb") as f:
+    with open(args.output, "wb") as f:
         pickle.dump(users, f)
 
 
@@ -258,6 +259,30 @@ def get_time_intervals(timestamp):
     
     return bounds
 
+def filter_subreddit_posters(users):
+    """
+        Elimina aquellos candidatos que hayan posteado en el subreddit
+
+        Parámetros
+        ----------
+        users: dict
+            \nEl diccionario con los usuarios, sus datos y sus candidatos
+    """
+    bar = pb.ProgressBar()
+    for user in bar(users):
+        possible_twins = users[user]["possible_twins"]
+
+        twins_to_delete = []
+        for twin in possible_twins:
+            # Si el nombre del posible gemelo es una de las claves del diccionario significa que
+            # es uno de los usuarios que postearon en /r/lonely
+            if twin["name"] in users:
+                twins_to_delete.append(twin)
+        
+        if len(twins_to_delete) > 0:
+            users[user]["possible_twins"] = [twin for twin in possible_twins if twin not in twins_to_delete]        
+        
+
 def parse_args():
     """
         Procesamiento de los argumentos con los que se ejecutó el script
@@ -265,7 +290,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Script para obtener un diccionario de usuarios y sus posibles 'gemelos'")
     parser.add_argument("-s", "--source-users", default="users-r-lonely", help="Nombre del índice de Elasticsearch del que se recuperaran los usuarios de los que se quieren encontrar gemelos")
     parser.add_argument("-i", "--user-index", default="users-reddit", help="Nombre del índice de Elasticsearch con los usuarios candidatos a ser gemelos")
-    parser.add_argument("-o", "--output", default="users_and_possible_twins.pickle", help="Nombre del archivo donde se serializará el diccionario")
+    parser.add_argument("-o", "--output", default="pickles/users_and_possible_twins.pickle", help="Nombre del archivo donde se serializará el diccionario")
     parser.add_argument("-m", "--max-users", default=500, type=int, help="Número máximo de candidatos a considerar por usuario")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="dirección del servidor Elasticsearch")
     return parser.parse_args()
