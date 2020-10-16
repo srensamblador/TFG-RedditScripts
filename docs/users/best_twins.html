@@ -33,7 +33,8 @@ karma (posts y comentarios) y número de posts</p>
 <ul>
 <li>-u, &ndash;users: Ruta del archivo .pickle con la salida del script <code>find_possible_twins</code></li>
 <li>-p, &ndash;posts: Ruta del .csv con posts por usuario obtenido de <code>posts_per_user</code></li>
-<li>-o, &ndash;output: Fichero donde se volcará en .csv la lista de usuarios con sus mejores "gemelos"</li>
+<li>-o, &ndash;output: Fichero .csv dónde se volcarán todos los datos de los usuarios y sus gemelos resultantes</li>
+<li>&ndash;summary: Fichero .csv dónde se volcará la lista de usuarios con sus mejores "gemelos"</li>
 </ul>
 <details class="source">
 <summary>
@@ -52,7 +53,8 @@ karma (posts y comentarios) y número de posts</p>
     ----------
     * -u, --users: Ruta del archivo .pickle con la salida del script `find_possible_twins`
     * -p, --posts: Ruta del .csv con posts por usuario obtenido de `posts_per_user`
-    * -o, --output: Fichero donde se volcará en .csv la lista de usuarios con sus mejores &#34;gemelos&#34;
+    * -o, --output: Fichero .csv dónde se volcarán todos los datos de los usuarios y sus gemelos resultantes
+    * --summary: Fichero .csv dónde se volcará la lista de usuarios con sus mejores &#34;gemelos&#34;
 &#34;&#34;&#34;
 import argparse
 import pickle
@@ -76,7 +78,8 @@ def main(args):
     best_twins = find_best_twins(users)
 
     print(&#34;Volcando resultados...&#34;)
-    dump_to_file(args.output, best_twins)
+    dump_twin_summary(args.summary, best_twins)
+    dump_full_data(args.output, users, best_twins)
 
 def filter_twins(users, posts_per_twin):
     &#34;&#34;&#34;
@@ -215,7 +218,7 @@ def load_csv(path):
             twin_posts[user] = int(posts)
     return twin_posts
 
-def dump_to_file(path, twins):
+def dump_twin_summary(path, twins):
     &#34;&#34;&#34;
         Vuelca el resultado a un fichero .csv
 
@@ -231,6 +234,17 @@ def dump_to_file(path, twins):
         for user in twins:
             f.write(&#34;;&#34;.join((str(user), str(twins[user][&#34;name&#34;]), str(twins[user][&#34;distance&#34;]),&#34;\n&#34;)))
 
+def dump_full_data(path, users, twins):
+    with open(path, &#34;w&#34;) as f:
+        # Cabeceras
+        f.write(&#34;Usuario;Fecha de creación;Valores de karma;Num. posts;Muestra;Usuario emparejado\n&#34;)
+        for user in users:
+            data= users[user]
+            user_data = [
+                user
+            ]
+
+
 def parse_args():
     &#34;&#34;&#34;
         Procesamiento de los argumentos con los que se ejecutó el script
@@ -239,7 +253,8 @@ def parse_args():
     parser.add_argument(&#34;-u&#34;, &#34;--users&#34;, default=&#34;pickles/users_and_possible_twins.pickle&#34;, help=&#34;Ruta del archivo con el diccionario de &#34; 
         &#34;usuarios obtenido en el script find_possible_twins.py&#34;)
     parser.add_argument(&#34;-p&#34;, &#34;--posts&#34;, default=&#34;posts_per_user.csv&#34;, help=&#34;Ruta del archivo con el número de posts por candidato&#34;)
-    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;twins.csv&#34;, help=&#34;Archivo con los usuarios y su mejor gemelo&#34;)
+    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;users_data.csv&#34;, help=&#34;Archivo .csv donde se volcarán todos los datos de los usuarios y su gemelo&#34;)
+    parser.add_argument(&#34;--summary&#34;, default=&#34;twins.csv&#34;, help=&#34;Archivo .csv donde se volcarán los usuarios y su mejor gemelo&#34;)
     return parser.parse_args()
 
 if __name__ == &#34;__main__&#34;:
@@ -253,8 +268,28 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="src.users.best_twins.dump_to_file"><code class="name flex">
-<span>def <span class="ident">dump_to_file</span></span>(<span>path, twins)</span>
+<dt id="src.users.best_twins.dump_full_data"><code class="name flex">
+<span>def <span class="ident">dump_full_data</span></span>(<span>path, users, twins)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dump_full_data(path, users, twins):
+    with open(path, &#34;w&#34;) as f:
+        # Cabeceras
+        f.write(&#34;Usuario;Fecha de creación;Valores de karma;Num. posts;Muestra;Usuario emparejado\n&#34;)
+        for user in users:
+            data= users[user]
+            user_data = [
+                user
+            ]</code></pre>
+</details>
+</dd>
+<dt id="src.users.best_twins.dump_twin_summary"><code class="name flex">
+<span>def <span class="ident">dump_twin_summary</span></span>(<span>path, twins)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Vuelca el resultado a un fichero .csv</p>
@@ -267,7 +302,7 @@ Diccionario con los usuarios, su mejor gemelo y la distancia que los separa</p><
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dump_to_file(path, twins):
+<pre><code class="python">def dump_twin_summary(path, twins):
     &#34;&#34;&#34;
         Vuelca el resultado a un fichero .csv
 
@@ -498,7 +533,8 @@ Diccionario donde para cada nombre de usuario se guarda su número de posts</p><
     best_twins = find_best_twins(users)
 
     print(&#34;Volcando resultados...&#34;)
-    dump_to_file(args.output, best_twins)</code></pre>
+    dump_twin_summary(args.summary, best_twins)
+    dump_full_data(args.output, users, best_twins)</code></pre>
 </details>
 </dd>
 <dt id="src.users.best_twins.parse_args"><code class="name flex">
@@ -518,7 +554,8 @@ Diccionario donde para cada nombre de usuario se guarda su número de posts</p><
     parser.add_argument(&#34;-u&#34;, &#34;--users&#34;, default=&#34;pickles/users_and_possible_twins.pickle&#34;, help=&#34;Ruta del archivo con el diccionario de &#34; 
         &#34;usuarios obtenido en el script find_possible_twins.py&#34;)
     parser.add_argument(&#34;-p&#34;, &#34;--posts&#34;, default=&#34;posts_per_user.csv&#34;, help=&#34;Ruta del archivo con el número de posts por candidato&#34;)
-    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;twins.csv&#34;, help=&#34;Archivo con los usuarios y su mejor gemelo&#34;)
+    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;users_data.csv&#34;, help=&#34;Archivo .csv donde se volcarán todos los datos de los usuarios y su gemelo&#34;)
+    parser.add_argument(&#34;--summary&#34;, default=&#34;twins.csv&#34;, help=&#34;Archivo .csv donde se volcarán los usuarios y su mejor gemelo&#34;)
     return parser.parse_args()</code></pre>
 </details>
 </dd>
@@ -543,7 +580,8 @@ Diccionario donde para cada nombre de usuario se guarda su número de posts</p><
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
-<li><code><a title="src.users.best_twins.dump_to_file" href="#src.users.best_twins.dump_to_file">dump_to_file</a></code></li>
+<li><code><a title="src.users.best_twins.dump_full_data" href="#src.users.best_twins.dump_full_data">dump_full_data</a></code></li>
+<li><code><a title="src.users.best_twins.dump_twin_summary" href="#src.users.best_twins.dump_twin_summary">dump_twin_summary</a></code></li>
 <li><code><a title="src.users.best_twins.filter_twins" href="#src.users.best_twins.filter_twins">filter_twins</a></code></li>
 <li><code><a title="src.users.best_twins.find_best_twins" href="#src.users.best_twins.find_best_twins">find_best_twins</a></code></li>
 <li><code><a title="src.users.best_twins.load_csv" href="#src.users.best_twins.load_csv">load_csv</a></code></li>
