@@ -37,7 +37,7 @@ def main(args):
 
     print("Volcando resultados...")
     dump_twin_summary(args.summary, best_twins)
-    #dump_full_data(args.output, users, best_twins)
+    # dump_full_data(args.output, users, best_twins)
 
 def filter_twins(users, posts_per_twin):
     """
@@ -70,17 +70,6 @@ def filter_twins(users, posts_per_twin):
                 filtered_list.append(possible_twin)
         
         users[user]["possible_twins"] = filtered_list
-
-def test(users):
-    best_twins = find_best_twins(users)
-
-    subreddit_posters = filter_sub_posters(best_twins)
-
-def filter_sub_posters(twin_matches):
-    twins_to_test = []
-    for user, match in twin_matches.items():
-        
-
 
 
 def find_best_twins(users):
