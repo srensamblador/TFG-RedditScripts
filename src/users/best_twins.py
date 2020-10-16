@@ -37,7 +37,7 @@ def main(args):
 
     print("Volcando resultados...")
     dump_twin_summary(args.summary, best_twins)
-    # dump_full_data(args.output, users, best_twins)
+    dump_full_data(args.output, users, best_twins)
 
 def filter_twins(users, posts_per_twin):
     """
@@ -197,11 +197,34 @@ def dump_full_data(path, users, twins):
     with open(path, "w", encoding="UTF-8") as f:
         # Cabeceras
         f.write("Usuario;Fecha de creación;Valores de karma;Num. posts;Muestra;Usuario emparejado\n")
-        for user in users:
+        for user in twins:
+            # El usuario
             data= users[user]
             user_data = [
-                user
+                user,
+                data["created_utc"],
+                data["comment_karma"],
+                data["link_karma"],
+                "Sí",
+                twins[user]["name"],
+                "\n"
             ]
+            user_data = [str(field) for field in user_data]
+            f.write(";".join(user_data))
+
+            # Su gemelo
+            twin = next((twin for twin in data["possible_twins"] if twin["name"] == twins[user]["name"]), None)
+            twin_data = [
+                twin["name"],
+                twin["created_utc"],
+                twin["comment_karma"],
+                twin["link_karma"],
+                "No",
+                user,
+                "\n"
+            ]
+            twin_data = [str(field) for field in twin_data]
+            f.write(";".join(twin_data))
 
 
 def parse_args():
