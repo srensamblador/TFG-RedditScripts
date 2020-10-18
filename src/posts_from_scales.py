@@ -105,7 +105,7 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
     cache = []
     
     # Barra de progreso
-    numIter = 0
+    num_iter = 0
     bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
         "- ", pb.AnimatedMarker(), " ", pb.Counter(), " ", pb.Timer()
     ])
@@ -121,8 +121,8 @@ def query_API(query, scale,  before_timestamp, cache_size = 3000):
             
             cache = []
 
-            numIter += 1
-            bar.update(numIter)
+            num_iter += 1
+            bar.update(num_iter)
     bar.finish()
 
         

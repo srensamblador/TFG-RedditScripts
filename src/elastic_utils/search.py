@@ -8,8 +8,9 @@ from elasticsearch import Elasticsearch
 
 def main():
     es = Elasticsearch(timeout=10000)
-
-    res = es.search(index="reddit-loneliness-ngram",
+    
+    print("Lanzando consulta...")
+    res = es.search(index="phase-b",
                     body={
                         "size": 0,
                         "query": {
@@ -18,9 +19,9 @@ def main():
                             }
                         },
                         "aggs": {
-                            "significant_selftext": {
+                            "significant_subreddits": {
                                 "significant_terms": {
-                                    "field": "selftext",
+                                    "field": "subreddit",
                                     "size": 1000,
                                     "gnd": {}
                                 }
@@ -28,13 +29,14 @@ def main():
                         }
                     })
 
-    buckets = res["aggregations"]["significant_selftext"]["buckets"]
+    buckets = res["aggregations"]["significant_subreddits"]["buckets"]
     lista = []
     for bucket in buckets:
         lista.append((bucket["key"], bucket["score"],
                     bucket["doc_count"], bucket["bg_count"]))
-
-    with open("significant_selftext-ngram.csv", "w", encoding="UTF-8") as f:
+    
+    print("Volcando resultados...")
+    with open("phase-b-sign-subreddits.csv", "w", encoding="UTF-8") as f:
         f.write("Subreddit,GND,doc_count,bg_count\n")
         [f.write(",".join(map(str, t)) + "\n") for t in lista]
 

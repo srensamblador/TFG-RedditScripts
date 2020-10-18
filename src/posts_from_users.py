@@ -20,13 +20,15 @@ def main(args):
     global api
     api = PushshiftAPI()
 
+    print("Cargando usuarios...")
     users = load_users(args.users)
     
     if not os.path.exists(args.dump_dir):
         os.makedirs(args.dump_dir)
     dump_filename = args.dump_dir + "/user_posts-Dump.ndjson"
 
-    query_api(users, args.before, filename = dump_filename)
+    print("Obteniendo e indexando posts...")
+    query_api(users, args.before, args.subreddit, filename = dump_filename)
 
 
 def load_users(path):
@@ -34,44 +36,56 @@ def load_users(path):
     with open(path) as f:
         headers = next(f).split(";")
         index_name = headers.index("Usuario")
-        index_group = headers.index("Muestra")
+        index_group = headers.index("Muestra") # Necesitamos este campo para marcar el usuario como control o lonely
 
         for line in f:
           data = line.split(";")
           users[data[index_name]] = data[index_group]
     return users  
 
-def query_api(users, before_date, filename="dumps/user_posts-Dump.ndjson", cache_size=10000):
+def query_api(users, before_date, subreddit, filename="dumps/user_posts-Dump.ndjson", cache_size=10000):
     # Barra de progreso
-    widgets = [
-            pb.Percentage(),
-            " (", pb.SimpleProgress(), ") ",
-            pb.Bar(), " ",
-            pb.FormatLabel(""), " ",
-            pb.Timer(), " ",
-            pb.ETA(), " "
-        ]
-    bar = pb.ProgressBar(max_value=len(users), widgets=widgets)
-    for user in bar(users):
-        # Se muestra el usuario actual en la barra de progreso
-        widgets[6] = pb.FormatLabel("User: " + user + " ")
+    bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
+        "- ", pb.AnimatedMarker(), " Docs processed: ", pb.Counter(), " ", pb.Timer()
+    ])
+    num_iter = 0
+    # Ahorramos tiempo de máquina consultando a la API de 100 en 100 usuarios
+    # Más no es viable porque superamos los límites de caracteres de la petición GET
+    user_block = []
+    for user in users:
+        user_block.append(user)
 
-        # Se extraen todos los posts del usuario
-        gen = api.search_submissions(author=user, before=int(before_date.timestamp()))
+        if len(user_block) == 100:
+            # Se extraen todos los posts del usuario
+            gen = api.search_submissions(author=user_block, before=int(before_date.timestamp()))
 
-        cache = []
-        for c in gen:
-            c.d_["lonely"] = users[user] == "lonely"        
-            cache.append(c.d_)
+            # El tamaño de la caché dependerá de la memoria que tengamos
+            cache = []
+            for c in gen:
+                # Me tiene pasado que me lleguen posts sin subreddit, de ahí la primera condición
+                # Excluimos posts en el subreddit pasado por parámetro
+                if "subreddit" in c.d_ and c.d_["subreddit"] != subreddit:
+                    # Usamos el campo muestra del .csv para marcar los posts como lonely o no
+                    c.d_["lonely"] = users[c.d_["author"]] == "lonely"        
+                    cache.append(c.d_)
 
-            if len(cache) == cache_size:      
-                dump_to_file(cache, filename)
-                elastic_index(cache)
+                if len(cache) == cache_size:      
+                    dump_to_file(cache, filename)
+                    elastic_index(cache)
+                    
+                    cache = []
                 
-                cache = []
+                # Actualizar barra
+                num_iter += 1
+                bar.update(num_iter)
+                
 
-        dump_to_file(cache, filename)
-        elastic_index(cache)
+            # Los restantes al salir del bucle
+            dump_to_file(cache, filename)
+            elastic_index(cache)
+
+            user_block = []
+
 
 def dump_to_file(results, path):
     """
