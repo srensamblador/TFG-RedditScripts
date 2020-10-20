@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>src.posts_from_users API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Script para la extracción e indexado de posts de Reddit a partir de una lista de usuarios
+…" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +23,49 @@
 <h1 class="title">Module <code>src.posts_from_users</code></h1>
 </header>
 <section id="section-intro">
+<h2 id="script-para-la-extraccion-e-indexado-de-posts-de-reddit-a-partir-de-una-lista-de-usuarios">Script Para La Extracción E Indexado De Posts De Reddit A Partir De Una Lista De Usuarios</h2>
+<p>Recupera el histórico de posts de una lista de usuarios y "gemelos" previos a la fecha especificada
+a través de la API de Pushshift.
+Los documentos se indexan en un servidor Elasticsearch. Los posts se marcan con un campo booleano
+en función de si pertenecen a usuarios o a sus "gemelos".
+Los posts se vuelcan en un fichero .ndjson además de ser indexados, para poseer un backup.</p>
+<p>El fichero de entrada es un .csv donde cada fila es un usuario. Este csv debe tener al menos los campos
+"Usuario" y "Muestra", para poder extraer el nombre de los usuarios y etiquetar sus posts de forma adecuada.</p>
+<h2 id="parametros">Parámetros</h2>
+<ul>
+<li>-u, &ndash;users: fichero .csv con la lista de usuarios</li>
+<li>-d, &ndash;dump-dir: directorio donde se volcará el fichero .ndjson. Por defecto /dumps</li>
+<li>-s, &ndash;subreddit: subreddit cuyos posts se excluirán</li>
+<li>-e, &ndash;elasticsearch: dirección del servidor Elasticsearch contra el que se indexará. Por defecto <a href="http://localhost:9200">http://localhost:9200</a></li>
+<li>-b, &ndash;before: fecha donde se comenzará a extraer posts hacia atrás en el tiempo. Por defecto, la fecha actual.</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from psaw import PushshiftAPI
+<pre><code class="python">&#34;&#34;&#34;
+    Script para la extracción e indexado de posts de Reddit a partir de una lista de usuarios
+    -----------------------------------------------------------------------------------------
+
+    Recupera el histórico de posts de una lista de usuarios y &#34;gemelos&#34; previos a la fecha especificada
+    a través de la API de Pushshift.
+    Los documentos se indexan en un servidor Elasticsearch. Los posts se marcan con un campo booleano
+    en función de si pertenecen a usuarios o a sus &#34;gemelos&#34;.
+    Los posts se vuelcan en un fichero .ndjson además de ser indexados, para poseer un backup.
+
+    El fichero de entrada es un .csv donde cada fila es un usuario. Este csv debe tener al menos los campos
+    &#34;Usuario&#34; y &#34;Muestra&#34;, para poder extraer el nombre de los usuarios y etiquetar sus posts de forma adecuada.
+
+    Parámetros
+    ----------
+    * -u, --users: fichero .csv con la lista de usuarios
+    * -d, --dump-dir: directorio donde se volcará el fichero .ndjson. Por defecto /dumps
+    * -s, --subreddit: subreddit cuyos posts se excluirán
+    * -e, --elasticsearch: dirección del servidor Elasticsearch contra el que se indexará. Por defecto http://localhost:9200
+    * -b, --before: fecha donde se comenzará a extraer posts hacia atrás en el tiempo. Por defecto, la fecha actual.
+
+&#34;&#34;&#34;
+from psaw import PushshiftAPI
 import argparse
 from datetime import datetime as dt
 from datetime import date
@@ -60,6 +99,20 @@ def main(args):
 
 
 def load_users(path):
+    &#34;&#34;&#34;
+        Carga los usuarios desde un .csv y crea un diccionario con sus nombres de usuario
+        y la muestra a la que pertenecen
+
+        Parámetros
+        ----------
+        path: str  
+            \tRuta del archivo .csv con los usuarios
+
+        Salida
+        ------
+        dict  
+            \tDiccionario con los nombres de usuario y sus respectivas muestras
+    &#34;&#34;&#34;
     users = {}
     with open(path) as f:
         headers = next(f).split(&#34;;&#34;)
@@ -72,6 +125,26 @@ def load_users(path):
     return users  
 
 def query_api(users, before_date, subreddit, filename=&#34;dumps/user_posts-Dump.ndjson&#34;, cache_size=10000):
+    &#34;&#34;&#34;
+        Recupera los post de una lista de usuarios, los indexa en Elastic y vuelca a un fichero a modo
+        de backup.  
+        Se excluyen los posts que pertenezcan añ subreddit pasados por parámetro.
+
+        Parámetros
+        ----------
+        users: dict  
+            \tDiccionario con nombres de usuario y muestras a las que pertenecen  
+        before_date: date  
+            \tFecha límite tras la cuál no se extraerán más documentos  
+        subreddit: str
+            \tNombre del subreddit a excluir  
+        filename: str  
+            \tNombre del fichero donde se volcarán los documentos  
+        cache_size: int  
+            \tTamaño de los bloques de documentos que se indexarán de cada vez. Regular en función
+            de la memoria disponible
+    &#34;&#34;&#34;
+
     # Barra de progreso
     bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
         &#34;- &#34;, pb.AnimatedMarker(), &#34; Docs processed: &#34;, pb.Counter(), &#34; &#34;, pb.Timer()
@@ -105,8 +178,7 @@ def query_api(users, before_date, subreddit, filename=&#34;dumps/user_posts-Dump
                 
                 # Actualizar barra
                 num_iter += 1
-                bar.update(num_iter)
-                
+                bar.update(num_iter)                
 
             # Los restantes al salir del bucle
             dump_to_file(cache, filename)
@@ -117,7 +189,7 @@ def query_api(users, before_date, subreddit, filename=&#34;dumps/user_posts-Dump
 
 def dump_to_file(results, path):
     &#34;&#34;&#34;
-        Vuelca una lista de submissions a un fichero .json. Los volcados se deben realizar de forma parcial 
+        Vuelca una lista de submissions a un fichero .ndjson. Los volcados se deben realizar de forma parcial 
         debido a limitaciones de memoria.
         Las escrituras son mucho más rápidas si se tratan como strings en vez de objetos JSON.
 
@@ -132,7 +204,10 @@ def dump_to_file(results, path):
 
 def elastic_index(results):
     &#34;&#34;&#34;
-        TODO
+        Indexa la lista de documentos pasado por parámetro.  
+        A cada documento se le añadió un campo booleano para identificar si pertenece a un usuario que haya
+        participado en el subreddit objetivo o uno de sus gemelos.
+
         Parámetros
         ----------
         results: list
@@ -151,11 +226,11 @@ def parse_args():
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para la extracción de submissions de Reddit a partir de una lista de usuarios&#34;)
     parser.add_argument(&#34;-u&#34;, &#34;--users&#34;, default=&#34;users_data.csv&#34;, help=&#34;Fichero con los usuarios&#34;)
-    parser.add_argument(&#34;-d&#34;, &#34;--dump-dir&#34;, default=&#34;dumps&#34;, help=&#34;Directorio donde se volcarán los archivos .json de backup&#34;)
-    parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch contra el que se indexará&#34;)
+    parser.add_argument(&#34;-d&#34;, &#34;--dump-dir&#34;, default=&#34;dumps&#34;, help=&#34;Directorio donde se volcará el archivo .ndjson de backup&#34;)
     parser.add_argument(&#34;-s&#34;, &#34;--subreddit&#34;, default=&#34;lonely&#34;, help=&#34;Subreddit a excluir de los resultados&#34;)
+    parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch contra el que se indexará&#34;)
     parser.add_argument(&#34;-b&#34;, &#34;--before&#34;, default=dt.now(), type= lambda d: dt.strptime(d + &#34; 23:59:59&#34;, &#39;%Y-%m-%d %H:%M:%S&#39;),
-        help=&#34;timestamp desde el que se empezará a recuperar documentos hacia atrás en formato YYYY-mm-dd&#34;)
+        help=&#34;Fecha desde la que se empezará a recuperar documentos hacia atrás en formato YYYY-mm-dd&#34;)
     return parser.parse_args()
 
 if __name__ == &#34;__main__&#34;:
@@ -173,7 +248,7 @@ if __name__ == &#34;__main__&#34;:
 <span>def <span class="ident">dump_to_file</span></span>(<span>results, path)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Vuelca una lista de submissions a un fichero .json. Los volcados se deben realizar de forma parcial
+<div class="desc"><p>Vuelca una lista de submissions a un fichero .ndjson. Los volcados se deben realizar de forma parcial
 debido a limitaciones de memoria.
 Las escrituras son mucho más rápidas si se tratan como strings en vez de objetos JSON.</p>
 <h2 id="parametros">Parámetros</h2>
@@ -185,7 +260,7 @@ lista de documentos a volcar</p></div>
 </summary>
 <pre><code class="python">def dump_to_file(results, path):
     &#34;&#34;&#34;
-        Vuelca una lista de submissions a un fichero .json. Los volcados se deben realizar de forma parcial 
+        Vuelca una lista de submissions a un fichero .ndjson. Los volcados se deben realizar de forma parcial 
         debido a limitaciones de memoria.
         Las escrituras son mucho más rápidas si se tratan como strings en vez de objetos JSON.
 
@@ -203,9 +278,10 @@ lista de documentos a volcar</p></div>
 <span>def <span class="ident">elastic_index</span></span>(<span>results)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>TODO
-Parámetros</p>
-<hr>
+<div class="desc"><p>Indexa la lista de documentos pasado por parámetro.<br>
+A cada documento se le añadió un campo booleano para identificar si pertenece a un usuario que haya
+participado en el subreddit objetivo o uno de sus gemelos.</p>
+<h2 id="parametros">Parámetros</h2>
 <p>results: list
 lista de documentos a indexar</p></div>
 <details class="source">
@@ -214,7 +290,10 @@ lista de documentos a indexar</p></div>
 </summary>
 <pre><code class="python">def elastic_index(results):
     &#34;&#34;&#34;
-        TODO
+        Indexa la lista de documentos pasado por parámetro.  
+        A cada documento se le añadió un campo booleano para identificar si pertenece a un usuario que haya
+        participado en el subreddit objetivo o uno de sus gemelos.
+
         Parámetros
         ----------
         results: list
@@ -232,12 +311,33 @@ lista de documentos a indexar</p></div>
 <span>def <span class="ident">load_users</span></span>(<span>path)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Carga los usuarios desde un .csv y crea un diccionario con sus nombres de usuario
+y la muestra a la que pertenecen</p>
+<h2 id="parametros">Parámetros</h2>
+<p>path: str<br>
+Ruta del archivo .csv con los usuarios</p>
+<h2 id="salida">Salida</h2>
+<p>dict<br>
+Diccionario con los nombres de usuario y sus respectivas muestras</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def load_users(path):
+    &#34;&#34;&#34;
+        Carga los usuarios desde un .csv y crea un diccionario con sus nombres de usuario
+        y la muestra a la que pertenecen
+
+        Parámetros
+        ----------
+        path: str  
+            \tRuta del archivo .csv con los usuarios
+
+        Salida
+        ------
+        dict  
+            \tDiccionario con los nombres de usuario y sus respectivas muestras
+    &#34;&#34;&#34;
     users = {}
     with open(path) as f:
         headers = next(f).split(&#34;;&#34;)
@@ -294,11 +394,11 @@ lista de documentos a indexar</p></div>
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para la extracción de submissions de Reddit a partir de una lista de usuarios&#34;)
     parser.add_argument(&#34;-u&#34;, &#34;--users&#34;, default=&#34;users_data.csv&#34;, help=&#34;Fichero con los usuarios&#34;)
-    parser.add_argument(&#34;-d&#34;, &#34;--dump-dir&#34;, default=&#34;dumps&#34;, help=&#34;Directorio donde se volcarán los archivos .json de backup&#34;)
-    parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch contra el que se indexará&#34;)
+    parser.add_argument(&#34;-d&#34;, &#34;--dump-dir&#34;, default=&#34;dumps&#34;, help=&#34;Directorio donde se volcará el archivo .ndjson de backup&#34;)
     parser.add_argument(&#34;-s&#34;, &#34;--subreddit&#34;, default=&#34;lonely&#34;, help=&#34;Subreddit a excluir de los resultados&#34;)
+    parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch contra el que se indexará&#34;)
     parser.add_argument(&#34;-b&#34;, &#34;--before&#34;, default=dt.now(), type= lambda d: dt.strptime(d + &#34; 23:59:59&#34;, &#39;%Y-%m-%d %H:%M:%S&#39;),
-        help=&#34;timestamp desde el que se empezará a recuperar documentos hacia atrás en formato YYYY-mm-dd&#34;)
+        help=&#34;Fecha desde la que se empezará a recuperar documentos hacia atrás en formato YYYY-mm-dd&#34;)
     return parser.parse_args()</code></pre>
 </details>
 </dd>
@@ -306,12 +406,46 @@ lista de documentos a indexar</p></div>
 <span>def <span class="ident">query_api</span></span>(<span>users, before_date, subreddit, filename='dumps/user_posts-Dump.ndjson', cache_size=10000)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Recupera los post de una lista de usuarios, los indexa en Elastic y vuelca a un fichero a modo
+de backup.<br>
+Se excluyen los posts que pertenezcan añ subreddit pasados por parámetro.</p>
+<h2 id="parametros">Parámetros</h2>
+<p>users: dict<br>
+Diccionario con nombres de usuario y muestras a las que pertenecen<br>
+before_date: date<br>
+Fecha límite tras la cuál no se extraerán más documentos<br>
+subreddit: str
+Nombre del subreddit a excluir<br>
+filename: str<br>
+Nombre del fichero donde se volcarán los documentos<br>
+cache_size: int<br>
+Tamaño de los bloques de documentos que se indexarán de cada vez. Regular en función
+de la memoria disponible</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def query_api(users, before_date, subreddit, filename=&#34;dumps/user_posts-Dump.ndjson&#34;, cache_size=10000):
+    &#34;&#34;&#34;
+        Recupera los post de una lista de usuarios, los indexa en Elastic y vuelca a un fichero a modo
+        de backup.  
+        Se excluyen los posts que pertenezcan añ subreddit pasados por parámetro.
+
+        Parámetros
+        ----------
+        users: dict  
+            \tDiccionario con nombres de usuario y muestras a las que pertenecen  
+        before_date: date  
+            \tFecha límite tras la cuál no se extraerán más documentos  
+        subreddit: str
+            \tNombre del subreddit a excluir  
+        filename: str  
+            \tNombre del fichero donde se volcarán los documentos  
+        cache_size: int  
+            \tTamaño de los bloques de documentos que se indexarán de cada vez. Regular en función
+            de la memoria disponible
+    &#34;&#34;&#34;
+
     # Barra de progreso
     bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
         &#34;- &#34;, pb.AnimatedMarker(), &#34; Docs processed: &#34;, pb.Counter(), &#34; &#34;, pb.Timer()
@@ -345,8 +479,7 @@ lista de documentos a indexar</p></div>
                 
                 # Actualizar barra
                 num_iter += 1
-                bar.update(num_iter)
-                
+                bar.update(num_iter)                
 
             # Los restantes al salir del bucle
             dump_to_file(cache, filename)
@@ -363,7 +496,10 @@ lista de documentos a indexar</p></div>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#script-para-la-extraccion-e-indexado-de-posts-de-reddit-a-partir-de-una-lista-de-usuarios">Script para la extracción e indexado de posts de Reddit a partir de una lista de usuarios</a></li>
+<li><a href="#parametros">Parámetros</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
