@@ -39,8 +39,9 @@ from elasticsearch import Elasticsearch
 
 def main():
     es = Elasticsearch(timeout=10000)
-
-    res = es.search(index=&#34;reddit-loneliness-ngram&#34;,
+    
+    print(&#34;Lanzando consulta...&#34;)
+    res = es.search(index=&#34;phase-b&#34;,
                     body={
                         &#34;size&#34;: 0,
                         &#34;query&#34;: {
@@ -49,9 +50,9 @@ def main():
                             }
                         },
                         &#34;aggs&#34;: {
-                            &#34;significant_selftext&#34;: {
+                            &#34;significant_subreddits&#34;: {
                                 &#34;significant_terms&#34;: {
-                                    &#34;field&#34;: &#34;selftext&#34;,
+                                    &#34;field&#34;: &#34;subreddit&#34;,
                                     &#34;size&#34;: 1000,
                                     &#34;gnd&#34;: {}
                                 }
@@ -59,13 +60,14 @@ def main():
                         }
                     })
 
-    buckets = res[&#34;aggregations&#34;][&#34;significant_selftext&#34;][&#34;buckets&#34;]
+    buckets = res[&#34;aggregations&#34;][&#34;significant_subreddits&#34;][&#34;buckets&#34;]
     lista = []
     for bucket in buckets:
         lista.append((bucket[&#34;key&#34;], bucket[&#34;score&#34;],
                     bucket[&#34;doc_count&#34;], bucket[&#34;bg_count&#34;]))
-
-    with open(&#34;significant_selftext-ngram.csv&#34;, &#34;w&#34;, encoding=&#34;UTF-8&#34;) as f:
+    
+    print(&#34;Volcando resultados...&#34;)
+    with open(&#34;phase-b-sign-subreddits.csv&#34;, &#34;w&#34;, encoding=&#34;UTF-8&#34;) as f:
         f.write(&#34;Subreddit,GND,doc_count,bg_count\n&#34;)
         [f.write(&#34;,&#34;.join(map(str, t)) + &#34;\n&#34;) for t in lista]
 
@@ -91,8 +93,9 @@ if __name__==&#34;__main__&#34;:
 </summary>
 <pre><code class="python">def main():
     es = Elasticsearch(timeout=10000)
-
-    res = es.search(index=&#34;reddit-loneliness-ngram&#34;,
+    
+    print(&#34;Lanzando consulta...&#34;)
+    res = es.search(index=&#34;phase-b&#34;,
                     body={
                         &#34;size&#34;: 0,
                         &#34;query&#34;: {
@@ -101,9 +104,9 @@ if __name__==&#34;__main__&#34;:
                             }
                         },
                         &#34;aggs&#34;: {
-                            &#34;significant_selftext&#34;: {
+                            &#34;significant_subreddits&#34;: {
                                 &#34;significant_terms&#34;: {
-                                    &#34;field&#34;: &#34;selftext&#34;,
+                                    &#34;field&#34;: &#34;subreddit&#34;,
                                     &#34;size&#34;: 1000,
                                     &#34;gnd&#34;: {}
                                 }
@@ -111,13 +114,14 @@ if __name__==&#34;__main__&#34;:
                         }
                     })
 
-    buckets = res[&#34;aggregations&#34;][&#34;significant_selftext&#34;][&#34;buckets&#34;]
+    buckets = res[&#34;aggregations&#34;][&#34;significant_subreddits&#34;][&#34;buckets&#34;]
     lista = []
     for bucket in buckets:
         lista.append((bucket[&#34;key&#34;], bucket[&#34;score&#34;],
                     bucket[&#34;doc_count&#34;], bucket[&#34;bg_count&#34;]))
-
-    with open(&#34;significant_selftext-ngram.csv&#34;, &#34;w&#34;, encoding=&#34;UTF-8&#34;) as f:
+    
+    print(&#34;Volcando resultados...&#34;)
+    with open(&#34;phase-b-sign-subreddits.csv&#34;, &#34;w&#34;, encoding=&#34;UTF-8&#34;) as f:
         f.write(&#34;Subreddit,GND,doc_count,bg_count\n&#34;)
         [f.write(&#34;,&#34;.join(map(str, t)) + &#34;\n&#34;) for t in lista]</code></pre>
 </details>
