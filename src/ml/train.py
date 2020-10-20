@@ -33,7 +33,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn import svm
 from scipy import sparse as sp
 
-from src.model_stats import get_stats
+from src.ml.model_stats import get_stats
 
 __author__="Samuel Cifuentes García"
 
