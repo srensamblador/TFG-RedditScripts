@@ -1,0 +1,2 @@
+elasticdump --input=http://localhost:9200/phase-b --output=phase-b-training.ndjson --searchBody="{\"query\":{\"range\":{\"created_utc\":{ \"lte\":1556220629}}}}"
+elasticdump --input=http://localhost:9200/phase-b --output=phase-b-test.ndjson --searchBody="{\"query\":{\"range\":{\"created_utc\":{ \"gt\":1556220629}}}}"

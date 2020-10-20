@@ -3,6 +3,9 @@ splitted_csv/*
 __pycache__/*
 *.pyc
 dataset-users/*
+datasets/*
 pickles/*
+modelos/*
 *.csv
 *.pickle
+*.npz
