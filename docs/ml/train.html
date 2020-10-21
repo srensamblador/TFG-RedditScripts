@@ -154,15 +154,15 @@ def main(args):
     # Alternativamente, cargar de disco
     tags_test = joblib.load(&#34;pickles/tags_test.pickle&#34;)
 
-
-    print(&#34;Extrayendo características del conjunto de test...&#34;)   
+    print(&#34;Extrayendo características del conjunto de test...&#34;)  
+    &#34;&#34;&#34; 
     matrix_test = extract_features(args.test, vocabulary, num_test_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features_test.npz&#34;, matrix_test)    
     &#34;&#34;&#34;
     # Cargar de disco
-    matrix_test = joblib.load(&#34;pickles/features_test.npz)    
-    &#34;&#34;&#34;
+    matrix_test = sp.load_npz(&#34;pickles/features_test.npz&#34;)    
+    
 
     print(&#34;Generando predicciones para el conjunto de test...&#34;)
     for model in models:
@@ -725,15 +725,15 @@ Matriz con las etiquetas del dataset especificado</p></div>
     # Alternativamente, cargar de disco
     tags_test = joblib.load(&#34;pickles/tags_test.pickle&#34;)
 
-
-    print(&#34;Extrayendo características del conjunto de test...&#34;)   
+    print(&#34;Extrayendo características del conjunto de test...&#34;)  
+    &#34;&#34;&#34; 
     matrix_test = extract_features(args.test, vocabulary, num_test_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features_test.npz&#34;, matrix_test)    
     &#34;&#34;&#34;
     # Cargar de disco
-    matrix_test = joblib.load(&#34;pickles/features_test.npz)    
-    &#34;&#34;&#34;
+    matrix_test = sp.load_npz(&#34;pickles/features_test.npz&#34;)    
+    
 
     print(&#34;Generando predicciones para el conjunto de test...&#34;)
     for model in models:
