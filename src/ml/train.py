@@ -115,15 +115,15 @@ def main(args):
     # Alternativamente, cargar de disco
     tags_test = joblib.load("pickles/tags_test.pickle")
 
-
-    print("Extrayendo características del conjunto de test...")   
+    print("Extrayendo características del conjunto de test...")  
+    """ 
     matrix_test = extract_features(args.test, vocabulary, num_test_docs, args.stem)
     # Serializar
     sp.save_npz("pickles/features_test.npz", matrix_test)    
     """
     # Cargar de disco
-    matrix_test = joblib.load("pickles/features_test.npz)    
-    """
+    matrix_test = sp.load_npz("pickles/features_test.npz")    
+    
 
     print("Generando predicciones para el conjunto de test...")
     for model in models:

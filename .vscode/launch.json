@@ -8,8 +8,12 @@
             "name": "Python: Módulo",
             "type": "python",
             "request": "launch",
-            "module": "src.posts_from_users",
-            "args": ["-b", "2019-12-31"]
+            "module": "src.ml.train",
+            "args": [
+                "-training", "datasets/phase-b-training.ndjson",
+                "-test", "datasets/phase-b-testing.ndjson",
+                "-s", "238524"
+            ]
         }
     ]
 }

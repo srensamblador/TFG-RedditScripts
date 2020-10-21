@@ -1,6 +1,6 @@
 psaw
 elasticsearch
-progressbar
+progressbar2
 numpy
 nltk
 scikit_learn==0.23.2
