@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>src.ml.model_stats API documentation</title>
+<title>src.classify.model_stats API documentation</title>
 <meta name="description" content="Script para obtener las métricas de rendimiento de un conjunto de modelos ya entrenados
 Permite generar un archivo .csv con varias métricas …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -20,7 +20,7 @@ Permite generar un archivo .csv con varias métricas …" />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.ml.model_stats</code></h1>
+<h1 class="title">Module <code>src.classify.model_stats</code></h1>
 </header>
 <section id="section-intro">
 <h2 id="script-para-obtener-las-metricas-de-rendimiento-de-un-conjunto-de-modelos-ya-entrenados">Script Para Obtener Las Métricas De Rendimiento De Un Conjunto De Modelos Ya Entrenados</h2>
@@ -138,7 +138,7 @@ def parse_args():
     parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;modelos&#34;,
                         help=&#34;Directorio con los modelos entrenados&#34;)
     parser.add_argument(&#34;-t&#34;, &#34;--tags&#34;, default=&#34;pickles/tags_test.pickle&#34;, help=&#34;Ruta de las etiquetas del conjunto de testing obtenidas durante el entrenamiento&#34;)
-    parser.add_argument(&#34;-f&#34;, &#34;--features&#34;, default=&#34;pickles/features_test.pickle&#34;, help=&#34;Ruta de las características del conjunto de testing obtenidas durante el entrenamiento&#34;)
+    parser.add_argument(&#34;-f&#34;, &#34;--features&#34;, default=&#34;pickles/features_test.npz&#34;, help=&#34;Ruta de las características del conjunto de testing obtenidas durante el entrenamiento&#34;)
     parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;model_stats.csv&#34;, help=&#34;.csv donde se volcarán los resultados&#34;)
     return parser.parse_args()
 
@@ -154,7 +154,7 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="src.ml.model_stats.get_stats"><code class="name flex">
+<dt id="src.classify.model_stats.get_stats"><code class="name flex">
 <span>def <span class="ident">get_stats</span></span>(<span>results, tags_test)</span>
 </code></dt>
 <dd>
@@ -224,7 +224,7 @@ tags_test
     }</code></pre>
 </details>
 </dd>
-<dt id="src.ml.model_stats.main"><code class="name flex">
+<dt id="src.classify.model_stats.main"><code class="name flex">
 <span>def <span class="ident">main</span></span>(<span>args)</span>
 </code></dt>
 <dd>
@@ -265,7 +265,7 @@ tags_test
             f.write(line)</code></pre>
 </details>
 </dd>
-<dt id="src.ml.model_stats.parse_args"><code class="name flex">
+<dt id="src.classify.model_stats.parse_args"><code class="name flex">
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -283,7 +283,7 @@ tags_test
     parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;modelos&#34;,
                         help=&#34;Directorio con los modelos entrenados&#34;)
     parser.add_argument(&#34;-t&#34;, &#34;--tags&#34;, default=&#34;pickles/tags_test.pickle&#34;, help=&#34;Ruta de las etiquetas del conjunto de testing obtenidas durante el entrenamiento&#34;)
-    parser.add_argument(&#34;-f&#34;, &#34;--features&#34;, default=&#34;pickles/features_test.pickle&#34;, help=&#34;Ruta de las características del conjunto de testing obtenidas durante el entrenamiento&#34;)
+    parser.add_argument(&#34;-f&#34;, &#34;--features&#34;, default=&#34;pickles/features_test.npz&#34;, help=&#34;Ruta de las características del conjunto de testing obtenidas durante el entrenamiento&#34;)
     parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;model_stats.csv&#34;, help=&#34;.csv donde se volcarán los resultados&#34;)
     return parser.parse_args()</code></pre>
 </details>
@@ -304,14 +304,14 @@ tags_test
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.ml" href="index.html">src.ml</a></code></li>
+<li><code><a title="src.classify" href="index.html">src.classify</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="src.ml.model_stats.get_stats" href="#src.ml.model_stats.get_stats">get_stats</a></code></li>
-<li><code><a title="src.ml.model_stats.main" href="#src.ml.model_stats.main">main</a></code></li>
-<li><code><a title="src.ml.model_stats.parse_args" href="#src.ml.model_stats.parse_args">parse_args</a></code></li>
+<li><code><a title="src.classify.model_stats.get_stats" href="#src.classify.model_stats.get_stats">get_stats</a></code></li>
+<li><code><a title="src.classify.model_stats.main" href="#src.classify.model_stats.main">main</a></code></li>
+<li><code><a title="src.classify.model_stats.parse_args" href="#src.classify.model_stats.parse_args">parse_args</a></code></li>
 </ul>
 </li>
 </ul>

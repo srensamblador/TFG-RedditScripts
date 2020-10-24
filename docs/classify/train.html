@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>src.ml.train API documentation</title>
+<title>src.classify.train API documentation</title>
 <meta name="description" content="Script para entrenar un clasificador de post de Reddit
 …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.ml.train</code></h1>
+<h1 class="title">Module <code>src.classify.train</code></h1>
 </header>
 <section id="section-intro">
 <h2 id="script-para-entrenar-un-clasificador-de-post-de-reddit">Script Para Entrenar Un Clasificador De Post De Reddit</h2>
@@ -72,7 +72,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn import svm
 from scipy import sparse as sp
 
-from src.ml.model_stats import get_stats
+from src.classify.model_stats import get_stats
 
 __author__=&#34;Samuel Cifuentes García&#34;
 
@@ -400,7 +400,7 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="src.ml.train.create_vocabulary"><code class="name flex">
+<dt id="src.classify.train.create_vocabulary"><code class="name flex">
 <span>def <span class="ident">create_vocabulary</span></span>(<span>path, num_docs, stem)</span>
 </code></dt>
 <dd>
@@ -459,7 +459,7 @@ Lista de n términos más frecuentes del dataset</p></div>
     return vocabulary_list</code></pre>
 </details>
 </dd>
-<dt id="src.ml.train.extract_features"><code class="name flex">
+<dt id="src.classify.train.extract_features"><code class="name flex">
 <span>def <span class="ident">extract_features</span></span>(<span>path, vocabulary, num_docs, stem)</span>
 </code></dt>
 <dd>
@@ -559,7 +559,7 @@ Matriz con el tf de cada palabra en cada documento</p></div>
     return matrix</code></pre>
 </details>
 </dd>
-<dt id="src.ml.train.file_length"><code class="name flex">
+<dt id="src.classify.train.file_length"><code class="name flex">
 <span>def <span class="ident">file_length</span></span>(<span>path)</span>
 </code></dt>
 <dd>
@@ -594,7 +594,7 @@ Número de documentos en el fichero</p></div>
         return i+1</code></pre>
 </details>
 </dd>
-<dt id="src.ml.train.get_tags"><code class="name flex">
+<dt id="src.classify.train.get_tags"><code class="name flex">
 <span>def <span class="ident">get_tags</span></span>(<span>path, num_docs)</span>
 </code></dt>
 <dd>
@@ -641,7 +641,7 @@ Matriz con las etiquetas del dataset especificado</p></div>
     return matrix</code></pre>
 </details>
 </dd>
-<dt id="src.ml.train.main"><code class="name flex">
+<dt id="src.classify.train.main"><code class="name flex">
 <span>def <span class="ident">main</span></span>(<span>args)</span>
 </code></dt>
 <dd>
@@ -742,7 +742,7 @@ Matriz con las etiquetas del dataset especificado</p></div>
         pprint(get_stats(results, tags_test))</code></pre>
 </details>
 </dd>
-<dt id="src.ml.train.parse_args"><code class="name flex">
+<dt id="src.classify.train.parse_args"><code class="name flex">
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -772,7 +772,7 @@ Matriz con las etiquetas del dataset especificado</p></div>
     return parser.parse_args()</code></pre>
 </details>
 </dd>
-<dt id="src.ml.train.preprocess_text"><code class="name flex">
+<dt id="src.classify.train.preprocess_text"><code class="name flex">
 <span>def <span class="ident">preprocess_text</span></span>(<span>data, stem)</span>
 </code></dt>
 <dd>
@@ -843,18 +843,18 @@ Lista de palabras del documento preprocesadas</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.ml" href="index.html">src.ml</a></code></li>
+<li><code><a title="src.classify" href="index.html">src.classify</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
-<li><code><a title="src.ml.train.create_vocabulary" href="#src.ml.train.create_vocabulary">create_vocabulary</a></code></li>
-<li><code><a title="src.ml.train.extract_features" href="#src.ml.train.extract_features">extract_features</a></code></li>
-<li><code><a title="src.ml.train.file_length" href="#src.ml.train.file_length">file_length</a></code></li>
-<li><code><a title="src.ml.train.get_tags" href="#src.ml.train.get_tags">get_tags</a></code></li>
-<li><code><a title="src.ml.train.main" href="#src.ml.train.main">main</a></code></li>
-<li><code><a title="src.ml.train.parse_args" href="#src.ml.train.parse_args">parse_args</a></code></li>
-<li><code><a title="src.ml.train.preprocess_text" href="#src.ml.train.preprocess_text">preprocess_text</a></code></li>
+<li><code><a title="src.classify.train.create_vocabulary" href="#src.classify.train.create_vocabulary">create_vocabulary</a></code></li>
+<li><code><a title="src.classify.train.extract_features" href="#src.classify.train.extract_features">extract_features</a></code></li>
+<li><code><a title="src.classify.train.file_length" href="#src.classify.train.file_length">file_length</a></code></li>
+<li><code><a title="src.classify.train.get_tags" href="#src.classify.train.get_tags">get_tags</a></code></li>
+<li><code><a title="src.classify.train.main" href="#src.classify.train.main">main</a></code></li>
+<li><code><a title="src.classify.train.parse_args" href="#src.classify.train.parse_args">parse_args</a></code></li>
+<li><code><a title="src.classify.train.preprocess_text" href="#src.classify.train.preprocess_text">preprocess_text</a></code></li>
 </ul>
 </li>
 </ul>

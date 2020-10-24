@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>src.ml.find_date_cutoff API documentation</title>
+<title>src.classify.find_date_cutoff API documentation</title>
 <meta name="description" content="Script para obtener la fecha que contiene el 80% de documentos de un índice de Elasticsearch
 Parámetros
 * index: Índice de Elasticsearch a tratar …" />
@@ -21,7 +21,7 @@ Parámetros
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.ml.find_date_cutoff</code></h1>
+<h1 class="title">Module <code>src.classify.find_date_cutoff</code></h1>
 </header>
 <section id="section-intro">
 <h2 id="script-para-obtener-la-fecha-que-contiene-el-80-de-documentos-de-un-indice-de-elasticsearch">Script para obtener la fecha que contiene el 80% de documentos de un índice de Elasticsearch</h2>
@@ -189,7 +189,7 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="src.ml.find_date_cutoff.main"><code class="name flex">
+<dt id="src.classify.find_date_cutoff.main"><code class="name flex">
 <span>def <span class="ident">main</span></span>(<span>args)</span>
 </code></dt>
 <dd>
@@ -255,7 +255,7 @@ if __name__ == &#34;__main__&#34;:
     print(f&#34;Fecha con el 80% de los documentos : {dt.utcfromtimestamp(cutoff_date).strftime(&#39;%d-%m-%Y&#39;)} - Timestamp: {cutoff_date}&#34;)</code></pre>
 </details>
 </dd>
-<dt id="src.ml.find_date_cutoff.parse_args"><code class="name flex">
+<dt id="src.classify.find_date_cutoff.parse_args"><code class="name flex">
 <span>def <span class="ident">parse_args</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -276,7 +276,7 @@ if __name__ == &#34;__main__&#34;:
     return parser.parse_args()</code></pre>
 </details>
 </dd>
-<dt id="src.ml.find_date_cutoff.recursive"><code class="name flex">
+<dt id="src.classify.find_date_cutoff.recursive"><code class="name flex">
 <span>def <span class="ident">recursive</span></span>(<span>old_date, new_date, index, tolerance)</span>
 </code></dt>
 <dd>
@@ -369,14 +369,14 @@ Timestamp de la fecha objetivo</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.ml" href="index.html">src.ml</a></code></li>
+<li><code><a title="src.classify" href="index.html">src.classify</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="src.ml.find_date_cutoff.main" href="#src.ml.find_date_cutoff.main">main</a></code></li>
-<li><code><a title="src.ml.find_date_cutoff.parse_args" href="#src.ml.find_date_cutoff.parse_args">parse_args</a></code></li>
-<li><code><a title="src.ml.find_date_cutoff.recursive" href="#src.ml.find_date_cutoff.recursive">recursive</a></code></li>
+<li><code><a title="src.classify.find_date_cutoff.main" href="#src.classify.find_date_cutoff.main">main</a></code></li>
+<li><code><a title="src.classify.find_date_cutoff.parse_args" href="#src.classify.find_date_cutoff.parse_args">parse_args</a></code></li>
+<li><code><a title="src.classify.find_date_cutoff.recursive" href="#src.classify.find_date_cutoff.recursive">recursive</a></code></li>
 </ul>
 </li>
 </ul>
