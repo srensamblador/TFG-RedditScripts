@@ -99,7 +99,7 @@ def parse_args():
     parser.add_argument("-s", "--source", default="modelos",
                         help="Directorio con los modelos entrenados")
     parser.add_argument("-t", "--tags", default="pickles/tags_test.pickle", help="Ruta de las etiquetas del conjunto de testing obtenidas durante el entrenamiento")
-    parser.add_argument("-f", "--features", default="pickles/features_test.pickle", help="Ruta de las características del conjunto de testing obtenidas durante el entrenamiento")
+    parser.add_argument("-f", "--features", default="pickles/features_test.npz", help="Ruta de las características del conjunto de testing obtenidas durante el entrenamiento")
     parser.add_argument("-o", "--output", default="model_stats.csv", help=".csv donde se volcarán los resultados")
     return parser.parse_args()
 
