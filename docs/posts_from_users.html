@@ -35,7 +35,7 @@ Los posts se vuelcan en un fichero .ndjson además de ser indexados, para poseer
 <ul>
 <li>-u, &ndash;users: fichero .csv con la lista de usuarios</li>
 <li>-d, &ndash;dump-dir: directorio donde se volcará el fichero .ndjson. Por defecto /dumps</li>
-<li>-s, &ndash;subreddit: subreddit cuyos posts se excluirán</li>
+<li>-s, &ndash;subreddits: Fichero con los subreddit a excluir</li>
 <li>-e, &ndash;elasticsearch: dirección del servidor Elasticsearch contra el que se indexará. Por defecto <a href="http://localhost:9200">http://localhost:9200</a></li>
 <li>-b, &ndash;before: fecha donde se comenzará a extraer posts hacia atrás en el tiempo. Por defecto, la fecha actual.</li>
 </ul>
@@ -60,7 +60,7 @@ Los posts se vuelcan en un fichero .ndjson además de ser indexados, para poseer
     ----------
     * -u, --users: fichero .csv con la lista de usuarios
     * -d, --dump-dir: directorio donde se volcará el fichero .ndjson. Por defecto /dumps
-    * -s, --subreddit: subreddit cuyos posts se excluirán
+    * -s, --subreddits: Fichero con los subreddit a excluir
     * -e, --elasticsearch: dirección del servidor Elasticsearch contra el que se indexará. Por defecto http://localhost:9200
     * -b, --before: fecha donde se comenzará a extraer posts hacia atrás en el tiempo. Por defecto, la fecha actual.
 
@@ -89,13 +89,19 @@ def main(args):
 
     print(&#34;Cargando usuarios...&#34;)
     users = load_users(args.users)
+
+    if args.subreddits:
+        print(&#34;Cargando subreddits a excluir...&#34;)
+        subreddits = load_subreddits(args.subreddits)
+    else:
+        subreddits = [&#34;lonely&#34;]
     
     if not os.path.exists(args.dump_dir):
         os.makedirs(args.dump_dir)
     dump_filename = args.dump_dir + &#34;/user_posts-Dump.ndjson&#34;
 
     print(&#34;Obteniendo e indexando posts...&#34;)
-    query_api(users, args.before, args.subreddit, filename = dump_filename)
+    query_api(users, args.before, subreddits, filename = dump_filename)
 
 
 def load_users(path):
@@ -124,7 +130,7 @@ def load_users(path):
           users[data[index_name]] = data[index_group]
     return users  
 
-def query_api(users, before_date, subreddit, filename=&#34;dumps/user_posts-Dump.ndjson&#34;, cache_size=10000):
+def query_api(users, before_date, subreddits, filename=&#34;dumps/user_posts-Dump.ndjson&#34;, cache_size=10000):
     &#34;&#34;&#34;
         Recupera los post de una lista de usuarios, los indexa en Elastic y vuelca a un fichero a modo
         de backup.  
@@ -144,7 +150,6 @@ def query_api(users, before_date, subreddit, filename=&#34;dumps/user_posts-Dump
             \tTamaño de los bloques de documentos que se indexarán de cada vez. Regular en función
             de la memoria disponible
     &#34;&#34;&#34;
-
     # Barra de progreso
     bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
         &#34;- &#34;, pb.AnimatedMarker(), &#34; Docs processed: &#34;, pb.Counter(), &#34; &#34;, pb.Timer()
@@ -165,7 +170,7 @@ def query_api(users, before_date, subreddit, filename=&#34;dumps/user_posts-Dump
             for c in gen:
                 # Me tiene pasado que me lleguen posts sin subreddit, de ahí la primera condición
                 # Excluimos posts en el subreddit pasado por parámetro
-                if &#34;subreddit&#34; in c.d_ and c.d_[&#34;subreddit&#34;] != subreddit:
+                if &#34;subreddit&#34; in c.d_ and c.d_[&#34;subreddit&#34;] in subreddits:
                     # Usamos el campo muestra del .csv para marcar los posts como lonely o no
                     c.d_[&#34;lonely&#34;] = users[c.d_[&#34;author&#34;]] == &#34;lonely&#34;        
                     cache.append(c.d_)
@@ -185,6 +190,27 @@ def query_api(users, before_date, subreddit, filename=&#34;dumps/user_posts-Dump
             elastic_index(cache)
 
             user_block = []
+
+def load_subreddits(path):
+    &#34;&#34;&#34;
+        Carga una lista de subreddits de un archivo en disco.
+        El archivo debe ser un fichero de texto con un subreddit en cada línea.
+
+        Parámetros
+        ----------
+        path: str  
+            \tRuta del fichero con los subreddits
+
+        Salida
+        ------
+        list  
+            \tLista de subreddits
+    &#34;&#34;&#34;
+    subreddits = []
+    with open(path) as f:
+        for sub in f:
+            subreddits.append(sub)
+    return subreddits
 
 
 def dump_to_file(results, path):
@@ -225,9 +251,9 @@ def parse_args():
         Procesamiento de los argumentos con los que se ejecutó el script
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para la extracción de submissions de Reddit a partir de una lista de usuarios&#34;)
-    parser.add_argument(&#34;-u&#34;, &#34;--users&#34;, default=&#34;users_data.csv&#34;, help=&#34;Fichero con los usuarios&#34;)
+    parser.add_argument(&#34;-u&#34;, &#34;--users&#34;, default=&#34;csv/users_data.csv&#34;, help=&#34;Fichero con los usuarios&#34;)
     parser.add_argument(&#34;-d&#34;, &#34;--dump-dir&#34;, default=&#34;dumps&#34;, help=&#34;Directorio donde se volcará el archivo .ndjson de backup&#34;)
-    parser.add_argument(&#34;-s&#34;, &#34;--subreddit&#34;, default=&#34;lonely&#34;, help=&#34;Subreddit a excluir de los resultados&#34;)
+    parser.add_argument(&#34;-s&#34;, &#34;--subreddits&#34;, help=&#34;Fichero con los subreddits a excluir&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch contra el que se indexará&#34;)
     parser.add_argument(&#34;-b&#34;, &#34;--before&#34;, default=dt.now(), type= lambda d: dt.strptime(d + &#34; 23:59:59&#34;, &#39;%Y-%m-%d %H:%M:%S&#39;),
         help=&#34;Fecha desde la que se empezará a recuperar documentos hacia atrás en formato YYYY-mm-dd&#34;)
@@ -307,6 +333,44 @@ lista de documentos a indexar</p></div>
     indexer.index_documents(results)</code></pre>
 </details>
 </dd>
+<dt id="src.posts_from_users.load_subreddits"><code class="name flex">
+<span>def <span class="ident">load_subreddits</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Carga una lista de subreddits de un archivo en disco.
+El archivo debe ser un fichero de texto con un subreddit en cada línea.</p>
+<h2 id="parametros">Parámetros</h2>
+<p>path: str<br>
+Ruta del fichero con los subreddits</p>
+<h2 id="salida">Salida</h2>
+<p>list<br>
+Lista de subreddits</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_subreddits(path):
+    &#34;&#34;&#34;
+        Carga una lista de subreddits de un archivo en disco.
+        El archivo debe ser un fichero de texto con un subreddit en cada línea.
+
+        Parámetros
+        ----------
+        path: str  
+            \tRuta del fichero con los subreddits
+
+        Salida
+        ------
+        list  
+            \tLista de subreddits
+    &#34;&#34;&#34;
+    subreddits = []
+    with open(path) as f:
+        for sub in f:
+            subreddits.append(sub)
+    return subreddits</code></pre>
+</details>
+</dd>
 <dt id="src.posts_from_users.load_users"><code class="name flex">
 <span>def <span class="ident">load_users</span></span>(<span>path)</span>
 </code></dt>
@@ -370,13 +434,19 @@ Diccionario con los nombres de usuario y sus respectivas muestras</p></div>
 
     print(&#34;Cargando usuarios...&#34;)
     users = load_users(args.users)
+
+    if args.subreddits:
+        print(&#34;Cargando subreddits a excluir...&#34;)
+        subreddits = load_subreddits(args.subreddits)
+    else:
+        subreddits = [&#34;lonely&#34;]
     
     if not os.path.exists(args.dump_dir):
         os.makedirs(args.dump_dir)
     dump_filename = args.dump_dir + &#34;/user_posts-Dump.ndjson&#34;
 
     print(&#34;Obteniendo e indexando posts...&#34;)
-    query_api(users, args.before, args.subreddit, filename = dump_filename)</code></pre>
+    query_api(users, args.before, subreddits, filename = dump_filename)</code></pre>
 </details>
 </dd>
 <dt id="src.posts_from_users.parse_args"><code class="name flex">
@@ -393,9 +463,9 @@ Diccionario con los nombres de usuario y sus respectivas muestras</p></div>
         Procesamiento de los argumentos con los que se ejecutó el script
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para la extracción de submissions de Reddit a partir de una lista de usuarios&#34;)
-    parser.add_argument(&#34;-u&#34;, &#34;--users&#34;, default=&#34;users_data.csv&#34;, help=&#34;Fichero con los usuarios&#34;)
+    parser.add_argument(&#34;-u&#34;, &#34;--users&#34;, default=&#34;csv/users_data.csv&#34;, help=&#34;Fichero con los usuarios&#34;)
     parser.add_argument(&#34;-d&#34;, &#34;--dump-dir&#34;, default=&#34;dumps&#34;, help=&#34;Directorio donde se volcará el archivo .ndjson de backup&#34;)
-    parser.add_argument(&#34;-s&#34;, &#34;--subreddit&#34;, default=&#34;lonely&#34;, help=&#34;Subreddit a excluir de los resultados&#34;)
+    parser.add_argument(&#34;-s&#34;, &#34;--subreddits&#34;, help=&#34;Fichero con los subreddits a excluir&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch contra el que se indexará&#34;)
     parser.add_argument(&#34;-b&#34;, &#34;--before&#34;, default=dt.now(), type= lambda d: dt.strptime(d + &#34; 23:59:59&#34;, &#39;%Y-%m-%d %H:%M:%S&#39;),
         help=&#34;Fecha desde la que se empezará a recuperar documentos hacia atrás en formato YYYY-mm-dd&#34;)
@@ -403,7 +473,7 @@ Diccionario con los nombres de usuario y sus respectivas muestras</p></div>
 </details>
 </dd>
 <dt id="src.posts_from_users.query_api"><code class="name flex">
-<span>def <span class="ident">query_api</span></span>(<span>users, before_date, subreddit, filename='dumps/user_posts-Dump.ndjson', cache_size=10000)</span>
+<span>def <span class="ident">query_api</span></span>(<span>users, before_date, subreddits, filename='dumps/user_posts-Dump.ndjson', cache_size=10000)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Recupera los post de una lista de usuarios, los indexa en Elastic y vuelca a un fichero a modo
@@ -425,7 +495,7 @@ de la memoria disponible</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def query_api(users, before_date, subreddit, filename=&#34;dumps/user_posts-Dump.ndjson&#34;, cache_size=10000):
+<pre><code class="python">def query_api(users, before_date, subreddits, filename=&#34;dumps/user_posts-Dump.ndjson&#34;, cache_size=10000):
     &#34;&#34;&#34;
         Recupera los post de una lista de usuarios, los indexa en Elastic y vuelca a un fichero a modo
         de backup.  
@@ -445,7 +515,6 @@ de la memoria disponible</p></div>
             \tTamaño de los bloques de documentos que se indexarán de cada vez. Regular en función
             de la memoria disponible
     &#34;&#34;&#34;
-
     # Barra de progreso
     bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
         &#34;- &#34;, pb.AnimatedMarker(), &#34; Docs processed: &#34;, pb.Counter(), &#34; &#34;, pb.Timer()
@@ -466,7 +535,7 @@ de la memoria disponible</p></div>
             for c in gen:
                 # Me tiene pasado que me lleguen posts sin subreddit, de ahí la primera condición
                 # Excluimos posts en el subreddit pasado por parámetro
-                if &#34;subreddit&#34; in c.d_ and c.d_[&#34;subreddit&#34;] != subreddit:
+                if &#34;subreddit&#34; in c.d_ and c.d_[&#34;subreddit&#34;] in subreddits:
                     # Usamos el campo muestra del .csv para marcar los posts como lonely o no
                     c.d_[&#34;lonely&#34;] = users[c.d_[&#34;author&#34;]] == &#34;lonely&#34;        
                     cache.append(c.d_)
@@ -511,6 +580,7 @@ de la memoria disponible</p></div>
 <ul class="two-column">
 <li><code><a title="src.posts_from_users.dump_to_file" href="#src.posts_from_users.dump_to_file">dump_to_file</a></code></li>
 <li><code><a title="src.posts_from_users.elastic_index" href="#src.posts_from_users.elastic_index">elastic_index</a></code></li>
+<li><code><a title="src.posts_from_users.load_subreddits" href="#src.posts_from_users.load_subreddits">load_subreddits</a></code></li>
 <li><code><a title="src.posts_from_users.load_users" href="#src.posts_from_users.load_users">load_users</a></code></li>
 <li><code><a title="src.posts_from_users.main" href="#src.posts_from_users.main">main</a></code></li>
 <li><code><a title="src.posts_from_users.parse_args" href="#src.posts_from_users.parse_args">parse_args</a></code></li>
