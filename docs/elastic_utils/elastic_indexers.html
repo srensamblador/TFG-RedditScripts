@@ -37,18 +37,34 @@ class Indexer:
     &#34;&#34;&#34;
         Clase encargada de crear un índice en Elasticsearch e indexar documentos.
 
+        Opcionalmente se le puede pasar un filtro en forma de diccionario con la siguiente
+        estructura: 
+        ```json
+        {
+            &#34;campo1&#34;: [&#34;valor1&#34;, &#34;valor2&#34;, &#34;valor3&#34;],
+            &#34;campo2&#34;: [&#34;valorA&#34;, &#34;valorB&#34;, ...],
+            ...
+        }
+
+        Aquellos documentos donde alguno de los campos coincida con uno de los valores incluidos 
+        serán excluidos
+        ```
+
         Atributos
         ---------
         es: Elasticsearch
-            Conexión a un servidor Elastic
+            \tConexión a un servidor Elastic
         index_name: str
-            Nombre del índice con el que trabajará el indexer
+            \tNombre del índice con el que trabajará el indexer
+        filter_criteria: dict  
+            \tDiccionario con los filtros a aplicar. Opcional.
     &#34;&#34;&#34;
 
-    def __init__(self, connection, index_name):
+    def __init__(self, connection, index_name, filter_criteria=None):
         self.es = connection
         self.index_name = index_name
-        self.stats = {&#34;indexed&#34;: 0, &#34;errors&#34;: 0}
+        self.stats = {&#34;indexed&#34;: 0, &#34;errors&#34;: 0, &#34;filtered&#34;: 0}
+        self.filter = filter_criteria
 
     def create_index(self):
         &#34;&#34;&#34;
@@ -155,8 +171,8 @@ class Indexer:
 
     def index_documents(self, documents):
         &#34;&#34;&#34;
-            Indexa una lista de posts de Reddit.
-            Filtramos los campos que necesitamos
+            Indexa una lista de posts de Reddit. Nos quedamos con los campos que nos interesan.
+            Si el indexer se instanción con filtros, excluimos aquellos documentos afectados.
         &#34;&#34;&#34;
         toIndex = []
         # Lista de campos que queremos conservar
@@ -166,16 +182,36 @@ class Indexer:
                   &#34;ups&#34;, &#34;url&#34;, &#34;user_reports&#34;, &#34;query&#34;, &#34;scale&#34;, &#34;lonely&#34;]
 
         for document in documents:
-            processed_post = {
-                &#34;_index&#34;: self.index_name,
-                &#34;_type&#34;: &#34;post&#34;,
-                &#34;_id&#34;: document.get(&#34;id&#34;)
-            }
+            # Si se instanció el indexer con filtros, los aplicamos aquí
+            filter_flag = False # Indica si el post se debe excluir o no
+            if self.filter:
+                # El filtro es un diccionario con campos, donde para cada campo se incluye
+                # la lista de valores a excluir.
+                &#39;&#39;&#39;
+                    Ejemplo de filtro. Aquellos posts donde algún valor de los campos indicados
+                    encaje con los valores de las listas correspondientes serán excluidos.
+                    self.filter = {
+                        &#34;subreddit&#34;: [&#34;lonely&#34;, &#34;loneliness&#34;, &#34;ForeverAlone&#34;],
+                        &#34;author&#34;: [&#34;pepito&#34;, &#34;manolito&#34;]
+                    }
+                &#39;&#39;&#39;
+                for field in self.filter:
+                    if not filter_flag and document.get(field) in self.filter[field]:
+                        filter_flag = True
+                        self.stats[&#34;filtered&#34;] += 1
 
-            for field in fields:
-                processed_post[field] = document.get(field)
+            # Si no se excluye el post lo seguimos procesando            
+            if not filter_flag:
+                processed_post = {
+                    &#34;_index&#34;: self.index_name,
+                    &#34;_type&#34;: &#34;post&#34;,
+                    &#34;_id&#34;: document.get(&#34;id&#34;)
+                }
 
-            toIndex.append(processed_post)
+                for field in fields:
+                    processed_post[field] = document.get(field)
+
+                toIndex.append(processed_post)
 
         bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(
             toIndex), request_timeout=200, raise_on_error=False)
@@ -303,7 +339,6 @@ class NgramIndexer(Indexer):
         self.es.indices.put_mapping(
             index=self.index_name, doc_type=&#34;post&#34;, body=arguments,  include_type_name=True)
 
-
 class UserIndexer(Indexer):
     &#34;&#34;&#34;
         Clase heredera de Indexer que se especializará en índices de usuarios de Reddit
@@ -380,15 +415,28 @@ class UserIndexer(Indexer):
 <dl>
 <dt id="src.elastic_utils.elastic_indexers.Indexer"><code class="flex name class">
 <span>class <span class="ident">Indexer</span></span>
-<span>(</span><span>connection, index_name)</span>
+<span>(</span><span>connection, index_name, filter_criteria=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Clase encargada de crear un índice en Elasticsearch e indexar documentos.</p>
+<p>Opcionalmente se le puede pasar un filtro en forma de diccionario con la siguiente
+estructura: </p>
+<pre><code class="language-json">{
+    &quot;campo1&quot;: [&quot;valor1&quot;, &quot;valor2&quot;, &quot;valor3&quot;],
+    &quot;campo2&quot;: [&quot;valorA&quot;, &quot;valorB&quot;, ...],
+    ...
+}
+
+Aquellos documentos donde alguno de los campos coincida con uno de los valores incluidos 
+serán excluidos
+</code></pre>
 <h2 id="atributos">Atributos</h2>
 <p>es: Elasticsearch
 Conexión a un servidor Elastic
 index_name: str
-Nombre del índice con el que trabajará el indexer</p></div>
+Nombre del índice con el que trabajará el indexer
+filter_criteria: dict<br>
+Diccionario con los filtros a aplicar. Opcional.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -397,18 +445,34 @@ Nombre del índice con el que trabajará el indexer</p></div>
     &#34;&#34;&#34;
         Clase encargada de crear un índice en Elasticsearch e indexar documentos.
 
+        Opcionalmente se le puede pasar un filtro en forma de diccionario con la siguiente
+        estructura: 
+        ```json
+        {
+            &#34;campo1&#34;: [&#34;valor1&#34;, &#34;valor2&#34;, &#34;valor3&#34;],
+            &#34;campo2&#34;: [&#34;valorA&#34;, &#34;valorB&#34;, ...],
+            ...
+        }
+
+        Aquellos documentos donde alguno de los campos coincida con uno de los valores incluidos 
+        serán excluidos
+        ```
+
         Atributos
         ---------
         es: Elasticsearch
-            Conexión a un servidor Elastic
+            \tConexión a un servidor Elastic
         index_name: str
-            Nombre del índice con el que trabajará el indexer
+            \tNombre del índice con el que trabajará el indexer
+        filter_criteria: dict  
+            \tDiccionario con los filtros a aplicar. Opcional.
     &#34;&#34;&#34;
 
-    def __init__(self, connection, index_name):
+    def __init__(self, connection, index_name, filter_criteria=None):
         self.es = connection
         self.index_name = index_name
-        self.stats = {&#34;indexed&#34;: 0, &#34;errors&#34;: 0}
+        self.stats = {&#34;indexed&#34;: 0, &#34;errors&#34;: 0, &#34;filtered&#34;: 0}
+        self.filter = filter_criteria
 
     def create_index(self):
         &#34;&#34;&#34;
@@ -515,8 +579,8 @@ Nombre del índice con el que trabajará el indexer</p></div>
 
     def index_documents(self, documents):
         &#34;&#34;&#34;
-            Indexa una lista de posts de Reddit.
-            Filtramos los campos que necesitamos
+            Indexa una lista de posts de Reddit. Nos quedamos con los campos que nos interesan.
+            Si el indexer se instanción con filtros, excluimos aquellos documentos afectados.
         &#34;&#34;&#34;
         toIndex = []
         # Lista de campos que queremos conservar
@@ -526,16 +590,36 @@ Nombre del índice con el que trabajará el indexer</p></div>
                   &#34;ups&#34;, &#34;url&#34;, &#34;user_reports&#34;, &#34;query&#34;, &#34;scale&#34;, &#34;lonely&#34;]
 
         for document in documents:
-            processed_post = {
-                &#34;_index&#34;: self.index_name,
-                &#34;_type&#34;: &#34;post&#34;,
-                &#34;_id&#34;: document.get(&#34;id&#34;)
-            }
+            # Si se instanció el indexer con filtros, los aplicamos aquí
+            filter_flag = False # Indica si el post se debe excluir o no
+            if self.filter:
+                # El filtro es un diccionario con campos, donde para cada campo se incluye
+                # la lista de valores a excluir.
+                &#39;&#39;&#39;
+                    Ejemplo de filtro. Aquellos posts donde algún valor de los campos indicados
+                    encaje con los valores de las listas correspondientes serán excluidos.
+                    self.filter = {
+                        &#34;subreddit&#34;: [&#34;lonely&#34;, &#34;loneliness&#34;, &#34;ForeverAlone&#34;],
+                        &#34;author&#34;: [&#34;pepito&#34;, &#34;manolito&#34;]
+                    }
+                &#39;&#39;&#39;
+                for field in self.filter:
+                    if not filter_flag and document.get(field) in self.filter[field]:
+                        filter_flag = True
+                        self.stats[&#34;filtered&#34;] += 1
 
-            for field in fields:
-                processed_post[field] = document.get(field)
+            # Si no se excluye el post lo seguimos procesando            
+            if not filter_flag:
+                processed_post = {
+                    &#34;_index&#34;: self.index_name,
+                    &#34;_type&#34;: &#34;post&#34;,
+                    &#34;_id&#34;: document.get(&#34;id&#34;)
+                }
 
-            toIndex.append(processed_post)
+                for field in fields:
+                    processed_post[field] = document.get(field)
+
+                toIndex.append(processed_post)
 
         bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(
             toIndex), request_timeout=200, raise_on_error=False)
@@ -675,16 +759,16 @@ para poder ser utilizados en agregaciones.</p></div>
 <span>def <span class="ident">index_documents</span></span>(<span>self, documents)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Indexa una lista de posts de Reddit.
-Filtramos los campos que necesitamos</p></div>
+<div class="desc"><p>Indexa una lista de posts de Reddit. Nos quedamos con los campos que nos interesan.
+Si el indexer se instanción con filtros, excluimos aquellos documentos afectados.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def index_documents(self, documents):
     &#34;&#34;&#34;
-        Indexa una lista de posts de Reddit.
-        Filtramos los campos que necesitamos
+        Indexa una lista de posts de Reddit. Nos quedamos con los campos que nos interesan.
+        Si el indexer se instanción con filtros, excluimos aquellos documentos afectados.
     &#34;&#34;&#34;
     toIndex = []
     # Lista de campos que queremos conservar
@@ -694,16 +778,36 @@ Filtramos los campos que necesitamos</p></div>
               &#34;ups&#34;, &#34;url&#34;, &#34;user_reports&#34;, &#34;query&#34;, &#34;scale&#34;, &#34;lonely&#34;]
 
     for document in documents:
-        processed_post = {
-            &#34;_index&#34;: self.index_name,
-            &#34;_type&#34;: &#34;post&#34;,
-            &#34;_id&#34;: document.get(&#34;id&#34;)
-        }
+        # Si se instanció el indexer con filtros, los aplicamos aquí
+        filter_flag = False # Indica si el post se debe excluir o no
+        if self.filter:
+            # El filtro es un diccionario con campos, donde para cada campo se incluye
+            # la lista de valores a excluir.
+            &#39;&#39;&#39;
+                Ejemplo de filtro. Aquellos posts donde algún valor de los campos indicados
+                encaje con los valores de las listas correspondientes serán excluidos.
+                self.filter = {
+                    &#34;subreddit&#34;: [&#34;lonely&#34;, &#34;loneliness&#34;, &#34;ForeverAlone&#34;],
+                    &#34;author&#34;: [&#34;pepito&#34;, &#34;manolito&#34;]
+                }
+            &#39;&#39;&#39;
+            for field in self.filter:
+                if not filter_flag and document.get(field) in self.filter[field]:
+                    filter_flag = True
+                    self.stats[&#34;filtered&#34;] += 1
 
-        for field in fields:
-            processed_post[field] = document.get(field)
+        # Si no se excluye el post lo seguimos procesando            
+        if not filter_flag:
+            processed_post = {
+                &#34;_index&#34;: self.index_name,
+                &#34;_type&#34;: &#34;post&#34;,
+                &#34;_id&#34;: document.get(&#34;id&#34;)
+            }
 
-        toIndex.append(processed_post)
+            for field in fields:
+                processed_post[field] = document.get(field)
+
+            toIndex.append(processed_post)
 
     bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(
         toIndex), request_timeout=200, raise_on_error=False)
@@ -731,7 +835,7 @@ Filtramos los campos que necesitamos</p></div>
 </dd>
 <dt id="src.elastic_utils.elastic_indexers.NgramIndexer"><code class="flex name class">
 <span>class <span class="ident">NgramIndexer</span></span>
-<span>(</span><span>connection, index_name)</span>
+<span>(</span><span>connection, index_name, filter_criteria=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Clase heredera de Indexer, implementa un índice de bigramas.</p></div>
@@ -993,7 +1097,7 @@ Añade un analizador para tal fin</p></div>
 </dd>
 <dt id="src.elastic_utils.elastic_indexers.UserIndexer"><code class="flex name class">
 <span>class <span class="ident">UserIndexer</span></span>
-<span>(</span><span>connection, index_name)</span>
+<span>(</span><span>connection, index_name, filter_criteria=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Clase heredera de Indexer que se especializará en índices de usuarios de Reddit</p></div>
