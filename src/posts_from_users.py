@@ -15,7 +15,7 @@
     ----------
     * -u, --users: fichero .csv con la lista de usuarios
     * -d, --dump-dir: directorio donde se volcará el fichero .ndjson. Por defecto /dumps
-    * -s, --subreddit: subreddit cuyos posts se excluirán
+    * -s, --subreddits: Fichero con los subreddit a excluir
     * -e, --elasticsearch: dirección del servidor Elasticsearch contra el que se indexará. Por defecto http://localhost:9200
     * -b, --before: fecha donde se comenzará a extraer posts hacia atrás en el tiempo. Por defecto, la fecha actual.
 
@@ -44,13 +44,19 @@ def main(args):
 
     print("Cargando usuarios...")
     users = load_users(args.users)
+
+    if args.subreddits:
+        print("Cargando subreddits a excluir...")
+        subreddits = load_subreddits(args.subreddits)
+    else:
+        subreddits = ["lonely"]
     
     if not os.path.exists(args.dump_dir):
         os.makedirs(args.dump_dir)
     dump_filename = args.dump_dir + "/user_posts-Dump.ndjson"
 
     print("Obteniendo e indexando posts...")
-    query_api(users, args.before, args.subreddit, filename = dump_filename)
+    query_api(users, args.before, subreddits, filename = dump_filename)
 
 
 def load_users(path):
@@ -79,7 +85,7 @@ def load_users(path):
           users[data[index_name]] = data[index_group]
     return users  
 
-def query_api(users, before_date, subreddit, filename="dumps/user_posts-Dump.ndjson", cache_size=10000):
+def query_api(users, before_date, subreddits, filename="dumps/user_posts-Dump.ndjson", cache_size=10000):
     """
         Recupera los post de una lista de usuarios, los indexa en Elastic y vuelca a un fichero a modo
         de backup.  
@@ -99,7 +105,6 @@ def query_api(users, before_date, subreddit, filename="dumps/user_posts-Dump.ndj
             \tTamaño de los bloques de documentos que se indexarán de cada vez. Regular en función
             de la memoria disponible
     """
-
     # Barra de progreso
     bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
         "- ", pb.AnimatedMarker(), " Docs processed: ", pb.Counter(), " ", pb.Timer()
@@ -120,7 +125,7 @@ def query_api(users, before_date, subreddit, filename="dumps/user_posts-Dump.ndj
             for c in gen:
                 # Me tiene pasado que me lleguen posts sin subreddit, de ahí la primera condición
                 # Excluimos posts en el subreddit pasado por parámetro
-                if "subreddit" in c.d_ and c.d_["subreddit"] != subreddit:
+                if "subreddit" in c.d_ and c.d_["subreddit"] in subreddits:
                     # Usamos el campo muestra del .csv para marcar los posts como lonely o no
                     c.d_["lonely"] = users[c.d_["author"]] == "lonely"        
                     cache.append(c.d_)
@@ -140,6 +145,27 @@ def query_api(users, before_date, subreddit, filename="dumps/user_posts-Dump.ndj
             elastic_index(cache)
 
             user_block = []
+
+def load_subreddits(path):
+    """
+        Carga una lista de subreddits de un archivo en disco.
+        El archivo debe ser un fichero de texto con un subreddit en cada línea.
+
+        Parámetros
+        ----------
+        path: str  
+            \tRuta del fichero con los subreddits
+
+        Salida
+        ------
+        list  
+            \tLista de subreddits
+    """
+    subreddits = []
+    with open(path) as f:
+        for sub in f:
+            subreddits.append(sub)
+    return subreddits
 
 
 def dump_to_file(results, path):
@@ -180,9 +206,9 @@ def parse_args():
         Procesamiento de los argumentos con los que se ejecutó el script
     """
     parser = argparse.ArgumentParser(description="Script para la extracción de submissions de Reddit a partir de una lista de usuarios")
-    parser.add_argument("-u", "--users", default="users_data.csv", help="Fichero con los usuarios")
+    parser.add_argument("-u", "--users", default="csv/users_data.csv", help="Fichero con los usuarios")
     parser.add_argument("-d", "--dump-dir", default="dumps", help="Directorio donde se volcará el archivo .ndjson de backup")
-    parser.add_argument("-s", "--subreddit", default="lonely", help="Subreddit a excluir de los resultados")
+    parser.add_argument("-s", "--subreddits", help="Fichero con los subreddits a excluir")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="Dirección del servidor Elasticsearch contra el que se indexará")
     parser.add_argument("-b", "--before", default=dt.now(), type= lambda d: dt.strptime(d + " 23:59:59", '%Y-%m-%d %H:%M:%S'),
         help="Fecha desde la que se empezará a recuperar documentos hacia atrás en formato YYYY-mm-dd")
