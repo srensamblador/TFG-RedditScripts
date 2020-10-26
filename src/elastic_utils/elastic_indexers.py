@@ -9,18 +9,34 @@ class Indexer:
     """
         Clase encargada de crear un índice en Elasticsearch e indexar documentos.
 
+        Opcionalmente se le puede pasar un filtro en forma de diccionario con la siguiente
+        estructura: 
+        ```json
+        {
+            "campo1": ["valor1", "valor2", "valor3"],
+            "campo2": ["valorA", "valorB", ...],
+            ...
+        }
+
+        Aquellos documentos donde alguno de los campos coincida con uno de los valores incluidos 
+        serán excluidos
+        ```
+
         Atributos
         ---------
         es: Elasticsearch
-            Conexión a un servidor Elastic
+            \tConexión a un servidor Elastic
         index_name: str
-            Nombre del índice con el que trabajará el indexer
+            \tNombre del índice con el que trabajará el indexer
+        filter_criteria: dict  
+            \tDiccionario con los filtros a aplicar. Opcional.
     """
 
-    def __init__(self, connection, index_name):
+    def __init__(self, connection, index_name, filter_criteria=None):
         self.es = connection
         self.index_name = index_name
-        self.stats = {"indexed": 0, "errors": 0}
+        self.stats = {"indexed": 0, "errors": 0, "filtered": 0}
+        self.filter = filter_criteria
 
     def create_index(self):
         """
@@ -127,8 +143,8 @@ class Indexer:
 
     def index_documents(self, documents):
         """
-            Indexa una lista de posts de Reddit.
-            Filtramos los campos que necesitamos
+            Indexa una lista de posts de Reddit. Nos quedamos con los campos que nos interesan.
+            Si el indexer se instanción con filtros, excluimos aquellos documentos afectados.
         """
         toIndex = []
         # Lista de campos que queremos conservar
@@ -138,16 +154,36 @@ class Indexer:
                   "ups", "url", "user_reports", "query", "scale", "lonely"]
 
         for document in documents:
-            processed_post = {
-                "_index": self.index_name,
-                "_type": "post",
-                "_id": document.get("id")
-            }
+            # Si se instanció el indexer con filtros, los aplicamos aquí
+            filter_flag = False # Indica si el post se debe excluir o no
+            if self.filter:
+                # El filtro es un diccionario con campos, donde para cada campo se incluye
+                # la lista de valores a excluir.
+                '''
+                    Ejemplo de filtro. Aquellos posts donde algún valor de los campos indicados
+                    encaje con los valores de las listas correspondientes serán excluidos.
+                    self.filter = {
+                        "subreddit": ["lonely", "loneliness", "ForeverAlone"],
+                        "author": ["pepito", "manolito"]
+                    }
+                '''
+                for field in self.filter:
+                    if not filter_flag and document.get(field) in self.filter[field]:
+                        filter_flag = True
+                        self.stats["filtered"] += 1
 
-            for field in fields:
-                processed_post[field] = document.get(field)
+            # Si no se excluye el post lo seguimos procesando            
+            if not filter_flag:
+                processed_post = {
+                    "_index": self.index_name,
+                    "_type": "post",
+                    "_id": document.get("id")
+                }
 
-            toIndex.append(processed_post)
+                for field in fields:
+                    processed_post[field] = document.get(field)
+
+                toIndex.append(processed_post)
 
         bulk_stats = helpers.bulk(self.es, toIndex, chunk_size=len(
             toIndex), request_timeout=200, raise_on_error=False)
@@ -274,7 +310,6 @@ class NgramIndexer(Indexer):
         }
         self.es.indices.put_mapping(
             index=self.index_name, doc_type="post", body=arguments,  include_type_name=True)
-
 
 class UserIndexer(Indexer):
     """

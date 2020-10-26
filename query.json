@@ -1,0 +1,17 @@
+{
+    "size":0,
+    "query":{
+        "term":{
+            "lonely": true
+        }
+    },
+    "aggs":{
+        "significant_subreddits":{
+            "significant_terms":{
+                "field": "subreddit",
+                "size": 1000,
+                "gnd": {}
+            }
+        }
+    }
+}

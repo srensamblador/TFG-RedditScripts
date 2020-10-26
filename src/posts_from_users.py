@@ -105,6 +105,16 @@ def query_api(users, before_date, subreddits, filename="dumps/user_posts-Dump.nd
             \tTamaño de los bloques de documentos que se indexarán de cada vez. Regular en función
             de la memoria disponible
     """
+    # Inicializar el indexer
+    subreddit_filter = {
+        "subreddit": subreddits
+    }
+
+    indexer = Indexer(es, "phase-b", filter_criteria=subreddit_filter)
+    if not indexer.index_exists():
+        print("Creado índice: " + indexer.index_name)
+        indexer.create_index()
+
     # Barra de progreso
     bar = pb.ProgressBar(max_value=pb.UnknownLength, widgets=[
         "- ", pb.AnimatedMarker(), " Docs processed: ", pb.Counter(), " ", pb.Timer()
@@ -123,16 +133,13 @@ def query_api(users, before_date, subreddits, filename="dumps/user_posts-Dump.nd
             # El tamaño de la caché dependerá de la memoria que tengamos
             cache = []
             for c in gen:
-                # Me tiene pasado que me lleguen posts sin subreddit, de ahí la primera condición
-                # Excluimos posts en el subreddit pasado por parámetro
-                if "subreddit" in c.d_ and c.d_["subreddit"] in subreddits:
-                    # Usamos el campo muestra del .csv para marcar los posts como lonely o no
-                    c.d_["lonely"] = users[c.d_["author"]] == "lonely"        
-                    cache.append(c.d_)
+                # Usamos el campo muestra del .csv para marcar los posts como lonely o no
+                c.d_["lonely"] = users[c.d_["author"]] == "lonely"        
+                cache.append(c.d_)
 
                 if len(cache) == cache_size:      
                     dump_to_file(cache, filename)
-                    elastic_index(cache)
+                    indexer.index_documents(cache)
                     
                     cache = []
                 
@@ -142,9 +149,11 @@ def query_api(users, before_date, subreddits, filename="dumps/user_posts-Dump.nd
 
             # Los restantes al salir del bucle
             dump_to_file(cache, filename)
-            elastic_index(cache)
+            indexer.index_documents(cache)
 
             user_block = []
+            
+    print("\t*%s - Indexed: %d, Errors:%d, Filtered:%d"%(indexer.index_name, indexer.stats["indexed"], indexer.stats["errors"], indexer.stats["filtered"]))
 
 def load_subreddits(path):
     """
@@ -164,7 +173,7 @@ def load_subreddits(path):
     subreddits = []
     with open(path) as f:
         for sub in f:
-            subreddits.append(sub)
+            subreddits.append(sub.strip())
     return subreddits
 
 
@@ -182,24 +191,6 @@ def dump_to_file(results, path):
     with open(path, "a") as f:
         for result in results:
             f.write(json.dumps(result) + "\n")
-
-def elastic_index(results):
-    """
-        Indexa la lista de documentos pasado por parámetro.  
-        A cada documento se le añadió un campo booleano para identificar si pertenece a un usuario que haya
-        participado en el subreddit objetivo o uno de sus gemelos.
-
-        Parámetros
-        ----------
-        results: list
-            lista de documentos a indexar
-    """
-    indexer = Indexer(es, "phase-b")
-    if not indexer.index_exists():
-        print("Creado índice: " + indexer.index_name)
-        indexer.create_index()
-        
-    indexer.index_documents(results)
 
 def parse_args():
     """

@@ -8,11 +8,10 @@
             "name": "Python: Módulo",
             "type": "python",
             "request": "launch",
-            "module": "src.ml.train",
+            "module": "src.index_from_backup",
             "args": [
-                "-training", "datasets/phase-b-training.ndjson",
-                "-test", "datasets/phase-b-testing.ndjson",
-                "-s", "238524"
+                "-d", "dumps",
+                "-b", "500"
             ]
         }
     ]

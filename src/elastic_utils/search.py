@@ -5,29 +5,17 @@
 
 import csv
 from elasticsearch import Elasticsearch
+import json
 
 def main():
     es = Elasticsearch(timeout=10000)
     
     print("Lanzando consulta...")
+    with open("query.json") as f:
+        query = json.load(f)
+
     res = es.search(index="phase-b",
-                    body={
-                        "size": 0,
-                        "query": {
-                            "term": {
-                                "lonely": True
-                            }
-                        },
-                        "aggs": {
-                            "significant_subreddits": {
-                                "significant_terms": {
-                                    "field": "subreddit",
-                                    "size": 1000,
-                                    "gnd": {}
-                                }
-                            }
-                        }
-                    })
+                    body=query)
 
     buckets = res["aggregations"]["significant_subreddits"]["buckets"]
     lista = []
@@ -36,7 +24,7 @@ def main():
                     bucket["doc_count"], bucket["bg_count"]))
     
     print("Volcando resultados...")
-    with open("phase-b-sign-subreddits.csv", "w", encoding="UTF-8") as f:
+    with open("phase-b-sign-subreddits2.csv", "w", encoding="UTF-8") as f:
         f.write("Subreddit,GND,doc_count,bg_count\n")
         [f.write(",".join(map(str, t)) + "\n") for t in lista]
 
