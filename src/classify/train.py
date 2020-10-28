@@ -83,7 +83,7 @@ def main(args):
     print("Entrenando modelos...")
     # Metemos aquí los modelos que queramos entrenar en esta ejecución del script
     models = {
-        # "LogisticRegression": LogisticRegression(verbose=True, random_state=args.seed),
+        "LogisticRegression": LogisticRegression(verbose=True, random_state=args.seed),
         #"GiniTree": DecisionTreeClassifier(random_state=args.seed),
         #"IDFTree": DecisionTreeClassifier(criterion="entropy", random_state=args.seed),
         "Bayes": MultinomialNB()
@@ -97,11 +97,16 @@ def main(args):
     # model = MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed, verbose=True)
     # model = svm.LinearSVC(verbose=True)
     # model = svm.SVC(cache_size=10000, verbose=True) # TODO Probar parámetro cache_size
-
+    """
     for model in models:
         print("Entrenando " + model + "...")
         models[model] = models[model].fit(matrix_training, tags_training)
         joblib.dump(models[model], "modelos/" + model.lower() + ".pickle") # Serializamos
+    """
+    results = joblib.Parallel(n_jobs=2)(joblib.delayed(train_model)(model, models[model], matrix_training, tags_training) for model in models)
+
+    for x in results:
+        models[x[0]] = x[1]
 
     print("Evaluando modelos...")
     num_test_docs = file_length(args.test)
@@ -130,6 +135,11 @@ def main(args):
         print("Modelo " + model + "...")
         results = models[model].predict(matrix_test)
         pprint(get_stats(results, tags_test))
+
+def train_model(name, model, features, tags):
+    results = model.fit(features, tags)
+    joblib.dump(model, "modelos/" + name.lower() + ".pickle") # Serializamos
+    return name, model
 
 def create_vocabulary(path, num_docs, stem):
     """
