@@ -92,40 +92,41 @@ def main(args):
     # del preprocesamiento previo al entrenamiento en disco, para ahorrarnos estos pasos en ejecuciones posteriores
 
     print(&#34;Generando el vocabulario...&#34;)
-    &#34;&#34;&#34;
     vocabulary = create_vocabulary(args.training, num_training_docs, args.stem)    
     # De esta forma, podemos serializar el vocabulario para no tener que recalcularlo cuando entrenemos otros modelos
     joblib.dump(vocabulary, &#34;pickles/vocabulary.pickle&#34;)
     &#34;&#34;&#34;
     # Si tenemos el vocabulario ya en disco, se cargaría así    
     vocabulary = joblib.load(&#34;pickles/vocabulary.pickle&#34;)    
-
-    print(&#34;Obteniendo etiquetas...&#34;)
     &#34;&#34;&#34;
+    print(&#34;Obteniendo etiquetas...&#34;)
     tags_training = get_tags(args.training, num_training_docs)
     # Serializar etiquetas
     joblib.dump(tags_training, &#34;pickles/tags.pickle&#34;)    
     &#34;&#34;&#34;    
     # Cargarlas desde disco
     tags_training = joblib.load(&#34;pickles/tags.pickle&#34;)
-    
-    print(&#34;Extrayendo características...&#34;)
     &#34;&#34;&#34;
+    print(&#34;Extrayendo características...&#34;)
     matrix_training = extract_features(args.training, vocabulary, num_training_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features.npz&#34;, matrix_training)
     &#34;&#34;&#34;
     # Cargar desde disco
     matrix_training = sp.load_npz(&#34;pickles/features.npz&#34;)
-    
+    &#34;&#34;&#34;
 
     print(&#34;Entrenando modelos...&#34;)
     # Metemos aquí los modelos que queramos entrenar en esta ejecución del script
     models = {
-        # &#34;LogisticRegression&#34;: LogisticRegression(verbose=True, random_state=args.seed),
-        #&#34;GiniTree&#34;: DecisionTreeClassifier(random_state=args.seed),
-        #&#34;IDFTree&#34;: DecisionTreeClassifier(criterion=&#34;entropy&#34;, random_state=args.seed),
-        &#34;Bayes&#34;: MultinomialNB()
+        &#34;LogisticRegression&#34;: LogisticRegression(random_state=args.seed),
+        &#34;GiniTree&#34;: DecisionTreeClassifier(random_state=args.seed),
+        &#34;IDFTree&#34;: DecisionTreeClassifier(criterion=&#34;entropy&#34;, random_state=args.seed),
+        &#34;Bayes&#34;: MultinomialNB(),
+        &#34;NN_1L_150&#34;: MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed),
+        &#34;NN_2L_150&#34;: MLPClassifier(hidden_layer_sizes=(150,150), random_state=args.seed),
+        &#34;NN_1L_300&#34;: MLPClassifier(hidden_layer_sizes=(300), random_state=args.seed),
+        &#34;SVM_Linear&#34;: svm.LinearSVC()
     }
 
     ## Ejemplos
@@ -136,39 +137,96 @@ def main(args):
     # model = MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed, verbose=True)
     # model = svm.LinearSVC(verbose=True)
     # model = svm.SVC(cache_size=10000, verbose=True) # TODO Probar parámetro cache_size
-
-    for model in models:
-        print(&#34;Entrenando &#34; + model + &#34;...&#34;)
-        models[model] = models[model].fit(matrix_training, tags_training)
-        joblib.dump(models[model], &#34;modelos/&#34; + model.lower() + &#34;.pickle&#34;) # Serializamos
+    
+    # Para entrenar los modelos secuencialmente
+    train_models(models, matrix_training, tags_training, n_jobs=8)
 
     print(&#34;Evaluando modelos...&#34;)
     num_test_docs = file_length(args.test)
-
-    print(&#34;Obteniendo etiquetas del conjunto de test...&#34;)   
-    &#34;&#34;&#34; 
+    print(&#34;Obteniendo etiquetas del conjunto de test...&#34;)    
     tags_test = get_tags(args.test, num_test_docs)   
     # Serializar
     joblib.dump(tags_test, &#34;pickles/tags_test.pickle&#34;)
     &#34;&#34;&#34;
     # Alternativamente, cargar de disco
     tags_test = joblib.load(&#34;pickles/tags_test.pickle&#34;)
-
-    print(&#34;Extrayendo características del conjunto de test...&#34;)  
-    &#34;&#34;&#34; 
+    &#34;&#34;&#34;
+    print(&#34;Extrayendo características del conjunto de test...&#34;)   
     matrix_test = extract_features(args.test, vocabulary, num_test_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features_test.npz&#34;, matrix_test)    
     &#34;&#34;&#34;
     # Cargar de disco
     matrix_test = sp.load_npz(&#34;pickles/features_test.npz&#34;)    
-    
+    &#34;&#34;&#34;
 
     print(&#34;Generando predicciones para el conjunto de test...&#34;)
     for model in models:
         print(&#34;Modelo &#34; + model + &#34;...&#34;)
         results = models[model].predict(matrix_test)
         pprint(get_stats(results, tags_test))
+
+def train_models(models, features, tags, n_jobs = 1):
+    &#34;&#34;&#34;
+        Entrena un conjunto de modelos.
+        
+        Por lo general, los modelos de scikit-learn se entrenan en un único hilo. En su lugar, lo que podemos hacer 
+        es entrenar varios modelos, cada uno de ellos en un hilo diferente. Para ello se utiliza el parámetro n_jobs
+        de esta función. Si éste es 1, los modelos se entrenarán secuencialmente. Si es mayor de 1, se entrenarán en paralelo
+        utilizando tantos hilos como se hayan especificado.
+
+        Parámetros
+        ----------
+        models: dict  
+            \tDiccionario con los modelos a entrenar  
+        features: csr_matrix  
+            \tMatriz dispersa con las características del conjunto de entrenamiento  
+        tags: np.array  
+            \tMatriz con las etiquetas del conjunto de entrenamiento  
+        n_jobs: int  
+            \tNúmero de hilos a utilizar. 
+        
+        Salida
+        ------
+        models: dict
+            \tDiccionario con los modelos ya entrenados
+    &#34;&#34;&#34;
+    if n_jobs &gt; 1:
+        # [joblib.Parallel](https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html) nos permite entrenar varios modelos concurrentemente
+        results = joblib.Parallel(n_jobs=n_jobs)(joblib.delayed(__train_model)(model, models[model], features, tags) for model in models)
+        for name, trained_model in results:
+            models[name] = trained_model
+    else:
+        for model in models:
+            models[model] = __train_model(model, models[model], features, tags)[1]
+    return models
+
+def __train_model(name, model, features, tags):
+    &#34;&#34;&#34;
+        Entrena un clasificador
+
+        Parámetros
+        ----------
+        name: str  
+            \tNombre con el que identificar el modelo  
+        model: obj  
+            \tModelo de scikit-learn a entrenar  
+        features: csr_matrix  
+            \tMatriz dispersa con las características del conjunto de entrenamiento  
+        tags: np.array  
+            \tMatriz con las etiquetas del conjunto de entrenamiento
+        
+        Salida
+        ------
+        name: str  
+            \tNombre con el que identificar el modelo
+        model: obj  
+            \tModelo ya entrenado  
+    &#34;&#34;&#34;
+    model = model.fit(features, tags)
+    joblib.dump(model, &#34;modelos/&#34; + name.lower() + &#34;.pickle&#34;) # Serializamos
+    return name, model
+
 
 def create_vocabulary(path, num_docs, stem):
     &#34;&#34;&#34;
@@ -340,6 +398,10 @@ def preprocess_text(data, stem):
     text = re.sub(&#34;\s+&#34;, &#34; &#34;, text).lower()
 
     words = text.split()
+
+    # Eliminamos palabras ridículamente largas ya que no tienen ningún sentido y además
+    # pueden romper el Stemmer
+    words = [word for word in words if len(word) &lt; 200]
 
     # Estematizar
     if stem:
@@ -663,40 +725,41 @@ Matriz con las etiquetas del dataset especificado</p></div>
     # del preprocesamiento previo al entrenamiento en disco, para ahorrarnos estos pasos en ejecuciones posteriores
 
     print(&#34;Generando el vocabulario...&#34;)
-    &#34;&#34;&#34;
     vocabulary = create_vocabulary(args.training, num_training_docs, args.stem)    
     # De esta forma, podemos serializar el vocabulario para no tener que recalcularlo cuando entrenemos otros modelos
     joblib.dump(vocabulary, &#34;pickles/vocabulary.pickle&#34;)
     &#34;&#34;&#34;
     # Si tenemos el vocabulario ya en disco, se cargaría así    
     vocabulary = joblib.load(&#34;pickles/vocabulary.pickle&#34;)    
-
-    print(&#34;Obteniendo etiquetas...&#34;)
     &#34;&#34;&#34;
+    print(&#34;Obteniendo etiquetas...&#34;)
     tags_training = get_tags(args.training, num_training_docs)
     # Serializar etiquetas
     joblib.dump(tags_training, &#34;pickles/tags.pickle&#34;)    
     &#34;&#34;&#34;    
     # Cargarlas desde disco
     tags_training = joblib.load(&#34;pickles/tags.pickle&#34;)
-    
-    print(&#34;Extrayendo características...&#34;)
     &#34;&#34;&#34;
+    print(&#34;Extrayendo características...&#34;)
     matrix_training = extract_features(args.training, vocabulary, num_training_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features.npz&#34;, matrix_training)
     &#34;&#34;&#34;
     # Cargar desde disco
     matrix_training = sp.load_npz(&#34;pickles/features.npz&#34;)
-    
+    &#34;&#34;&#34;
 
     print(&#34;Entrenando modelos...&#34;)
     # Metemos aquí los modelos que queramos entrenar en esta ejecución del script
     models = {
-        # &#34;LogisticRegression&#34;: LogisticRegression(verbose=True, random_state=args.seed),
-        #&#34;GiniTree&#34;: DecisionTreeClassifier(random_state=args.seed),
-        #&#34;IDFTree&#34;: DecisionTreeClassifier(criterion=&#34;entropy&#34;, random_state=args.seed),
-        &#34;Bayes&#34;: MultinomialNB()
+        &#34;LogisticRegression&#34;: LogisticRegression(random_state=args.seed),
+        &#34;GiniTree&#34;: DecisionTreeClassifier(random_state=args.seed),
+        &#34;IDFTree&#34;: DecisionTreeClassifier(criterion=&#34;entropy&#34;, random_state=args.seed),
+        &#34;Bayes&#34;: MultinomialNB(),
+        &#34;NN_1L_150&#34;: MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed),
+        &#34;NN_2L_150&#34;: MLPClassifier(hidden_layer_sizes=(150,150), random_state=args.seed),
+        &#34;NN_1L_300&#34;: MLPClassifier(hidden_layer_sizes=(300), random_state=args.seed),
+        &#34;SVM_Linear&#34;: svm.LinearSVC()
     }
 
     ## Ejemplos
@@ -707,33 +770,28 @@ Matriz con las etiquetas del dataset especificado</p></div>
     # model = MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed, verbose=True)
     # model = svm.LinearSVC(verbose=True)
     # model = svm.SVC(cache_size=10000, verbose=True) # TODO Probar parámetro cache_size
-
-    for model in models:
-        print(&#34;Entrenando &#34; + model + &#34;...&#34;)
-        models[model] = models[model].fit(matrix_training, tags_training)
-        joblib.dump(models[model], &#34;modelos/&#34; + model.lower() + &#34;.pickle&#34;) # Serializamos
+    
+    # Para entrenar los modelos secuencialmente
+    train_models(models, matrix_training, tags_training, n_jobs=8)
 
     print(&#34;Evaluando modelos...&#34;)
     num_test_docs = file_length(args.test)
-
-    print(&#34;Obteniendo etiquetas del conjunto de test...&#34;)   
-    &#34;&#34;&#34; 
+    print(&#34;Obteniendo etiquetas del conjunto de test...&#34;)    
     tags_test = get_tags(args.test, num_test_docs)   
     # Serializar
     joblib.dump(tags_test, &#34;pickles/tags_test.pickle&#34;)
     &#34;&#34;&#34;
     # Alternativamente, cargar de disco
     tags_test = joblib.load(&#34;pickles/tags_test.pickle&#34;)
-
-    print(&#34;Extrayendo características del conjunto de test...&#34;)  
-    &#34;&#34;&#34; 
+    &#34;&#34;&#34;
+    print(&#34;Extrayendo características del conjunto de test...&#34;)   
     matrix_test = extract_features(args.test, vocabulary, num_test_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features_test.npz&#34;, matrix_test)    
     &#34;&#34;&#34;
     # Cargar de disco
     matrix_test = sp.load_npz(&#34;pickles/features_test.npz&#34;)    
-    
+    &#34;&#34;&#34;
 
     print(&#34;Generando predicciones para el conjunto de test...&#34;)
     for model in models:
@@ -820,11 +878,76 @@ Lista de palabras del documento preprocesadas</p></div>
 
     words = text.split()
 
+    # Eliminamos palabras ridículamente largas ya que no tienen ningún sentido y además
+    # pueden romper el Stemmer
+    words = [word for word in words if len(word) &lt; 200]
+
     # Estematizar
     if stem:
         words = [ps.stem(word) for word in words]
 
     return words</code></pre>
+</details>
+</dd>
+<dt id="src.classify.train.train_models"><code class="name flex">
+<span>def <span class="ident">train_models</span></span>(<span>models, features, tags, n_jobs=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Entrena un conjunto de modelos.</p>
+<p>Por lo general, los modelos de scikit-learn se entrenan en un único hilo. En su lugar, lo que podemos hacer
+es entrenar varios modelos, cada uno de ellos en un hilo diferente. Para ello se utiliza el parámetro n_jobs
+de esta función. Si éste es 1, los modelos se entrenarán secuencialmente. Si es mayor de 1, se entrenarán en paralelo
+utilizando tantos hilos como se hayan especificado.</p>
+<h2 id="parametros">Parámetros</h2>
+<p>models: dict<br>
+Diccionario con los modelos a entrenar<br>
+features: csr_matrix<br>
+Matriz dispersa con las características del conjunto de entrenamiento<br>
+tags: np.array<br>
+Matriz con las etiquetas del conjunto de entrenamiento<br>
+n_jobs: int<br>
+Número de hilos a utilizar. </p>
+<h2 id="salida">Salida</h2>
+<p>models: dict
+Diccionario con los modelos ya entrenados</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train_models(models, features, tags, n_jobs = 1):
+    &#34;&#34;&#34;
+        Entrena un conjunto de modelos.
+        
+        Por lo general, los modelos de scikit-learn se entrenan en un único hilo. En su lugar, lo que podemos hacer 
+        es entrenar varios modelos, cada uno de ellos en un hilo diferente. Para ello se utiliza el parámetro n_jobs
+        de esta función. Si éste es 1, los modelos se entrenarán secuencialmente. Si es mayor de 1, se entrenarán en paralelo
+        utilizando tantos hilos como se hayan especificado.
+
+        Parámetros
+        ----------
+        models: dict  
+            \tDiccionario con los modelos a entrenar  
+        features: csr_matrix  
+            \tMatriz dispersa con las características del conjunto de entrenamiento  
+        tags: np.array  
+            \tMatriz con las etiquetas del conjunto de entrenamiento  
+        n_jobs: int  
+            \tNúmero de hilos a utilizar. 
+        
+        Salida
+        ------
+        models: dict
+            \tDiccionario con los modelos ya entrenados
+    &#34;&#34;&#34;
+    if n_jobs &gt; 1:
+        # [joblib.Parallel](https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html) nos permite entrenar varios modelos concurrentemente
+        results = joblib.Parallel(n_jobs=n_jobs)(joblib.delayed(__train_model)(model, models[model], features, tags) for model in models)
+        for name, trained_model in results:
+            models[name] = trained_model
+    else:
+        for model in models:
+            models[model] = __train_model(model, models[model], features, tags)[1]
+    return models</code></pre>
 </details>
 </dd>
 </dl>
@@ -855,6 +978,7 @@ Lista de palabras del documento preprocesadas</p></div>
 <li><code><a title="src.classify.train.main" href="#src.classify.train.main">main</a></code></li>
 <li><code><a title="src.classify.train.parse_args" href="#src.classify.train.parse_args">parse_args</a></code></li>
 <li><code><a title="src.classify.train.preprocess_text" href="#src.classify.train.preprocess_text">preprocess_text</a></code></li>
+<li><code><a title="src.classify.train.train_models" href="#src.classify.train.train_models">train_models</a></code></li>
 </ul>
 </li>
 </ul>
