@@ -53,37 +53,34 @@ def main(args):
     # del preprocesamiento previo al entrenamiento en disco, para ahorrarnos estos pasos en ejecuciones posteriores
 
     print("Generando el vocabulario...")
-    """
     vocabulary = create_vocabulary(args.training, num_training_docs, args.stem)    
     # De esta forma, podemos serializar el vocabulario para no tener que recalcularlo cuando entrenemos otros modelos
     joblib.dump(vocabulary, "pickles/vocabulary.pickle")
     """
     # Si tenemos el vocabulario ya en disco, se cargaría así    
     vocabulary = joblib.load("pickles/vocabulary.pickle")    
-
-    print("Obteniendo etiquetas...")
     """
+    print("Obteniendo etiquetas...")
     tags_training = get_tags(args.training, num_training_docs)
     # Serializar etiquetas
     joblib.dump(tags_training, "pickles/tags.pickle")    
     """    
     # Cargarlas desde disco
     tags_training = joblib.load("pickles/tags.pickle")
-    
-    print("Extrayendo características...")
     """
+    print("Extrayendo características...")
     matrix_training = extract_features(args.training, vocabulary, num_training_docs, args.stem)
     # Serializar
     sp.save_npz("pickles/features.npz", matrix_training)
     """
     # Cargar desde disco
     matrix_training = sp.load_npz("pickles/features.npz")
-    
+    """
 
     print("Entrenando modelos...")
     # Metemos aquí los modelos que queramos entrenar en esta ejecución del script
     models = {
-        "LogisticRegression": LogisticRegression(verbose=True, random_state=args.seed),
+        "LogisticRegression": LogisticRegression(random_state=args.seed),
         #"GiniTree": DecisionTreeClassifier(random_state=args.seed),
         #"IDFTree": DecisionTreeClassifier(criterion="entropy", random_state=args.seed),
         "Bayes": MultinomialNB()
@@ -97,38 +94,28 @@ def main(args):
     # model = MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed, verbose=True)
     # model = svm.LinearSVC(verbose=True)
     # model = svm.SVC(cache_size=10000, verbose=True) # TODO Probar parámetro cache_size
-    """
-    for model in models:
-        print("Entrenando " + model + "...")
-        models[model] = models[model].fit(matrix_training, tags_training)
-        joblib.dump(models[model], "modelos/" + model.lower() + ".pickle") # Serializamos
-    """
-    results = joblib.Parallel(n_jobs=2)(joblib.delayed(train_model)(model, models[model], matrix_training, tags_training) for model in models)
-
-    for x in results:
-        models[x[0]] = x[1]
+    
+    # Para entrenar los modelos secuencialmente
+    train_models(models, matrix_training, tags_training, n_jobs=2)
 
     print("Evaluando modelos...")
     num_test_docs = file_length(args.test)
-
-    print("Obteniendo etiquetas del conjunto de test...")   
-    """ 
+    print("Obteniendo etiquetas del conjunto de test...")    
     tags_test = get_tags(args.test, num_test_docs)   
     # Serializar
     joblib.dump(tags_test, "pickles/tags_test.pickle")
     """
     # Alternativamente, cargar de disco
     tags_test = joblib.load("pickles/tags_test.pickle")
-
-    print("Extrayendo características del conjunto de test...")  
-    """ 
+    """
+    print("Extrayendo características del conjunto de test...")   
     matrix_test = extract_features(args.test, vocabulary, num_test_docs, args.stem)
     # Serializar
     sp.save_npz("pickles/features_test.npz", matrix_test)    
     """
     # Cargar de disco
     matrix_test = sp.load_npz("pickles/features_test.npz")    
-    
+    """
 
     print("Generando predicciones para el conjunto de test...")
     for model in models:
@@ -136,10 +123,67 @@ def main(args):
         results = models[model].predict(matrix_test)
         pprint(get_stats(results, tags_test))
 
-def train_model(name, model, features, tags):
-    results = model.fit(features, tags)
+def train_models(models, features, tags, n_jobs = 1):
+    """
+        Entrena un conjunto de modelos.
+        
+        Por lo general, los modelos de scikit-learn se entrenan en un único hilo. En su lugar, lo que podemos hacer 
+        es entrenar varios modelos, cada uno de ellos en un hilo diferente. Para ello se utiliza el parámetro n_jobs
+        de esta función. Si éste es 1, los modelos se entrenarán secuencialmente. Si es mayor de 1, se entrenarán en paralelo
+        utilizando tantos hilos como se hayan especificado.
+
+        Parámetros
+        ----------
+        models: dict  
+            \tDiccionario con los modelos a entrenar  
+        features: csr_matrix  
+            \tMatriz dispersa con las características del conjunto de entrenamiento  
+        tags: np.array  
+            \tMatriz con las etiquetas del conjunto de entrenamiento  
+        n_jobs: int  
+            \tNúmero de hilos a utilizar. 
+        
+        Salida
+        ------
+        models: dict
+            \tDiccionario con los modelos ya entrenados
+    """
+    if n_jobs > 1:
+        # [joblib.Parallel](https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html) nos permite entrenar varios modelos concurrentemente
+        results = joblib.Parallel(n_jobs=n_jobs)(joblib.delayed(__train_model)(model, models[model], features, tags) for model in models)
+        for name, trained_model in results:
+            models[name] = trained_model
+    else:
+        for model in models:
+            models[model] = __train_model(model, models[model], features, tags)[1]
+    return models
+
+def __train_model(name, model, features, tags):
+    """
+        Entrena un clasificador
+
+        Parámetros
+        ----------
+        name: str  
+            \tNombre con el que identificar el modelo  
+        model: obj  
+            \tModelo de scikit-learn a entrenar  
+        features: csr_matrix  
+            \tMatriz dispersa con las características del conjunto de entrenamiento  
+        tags: np.array  
+            \tMatriz con las etiquetas del conjunto de entrenamiento
+        
+        Salida
+        ------
+        name: str  
+            \tNombre con el que identificar el modelo
+        model: obj  
+            \tModelo ya entrenado  
+    """
+    model = model.fit(features, tags)
     joblib.dump(model, "modelos/" + name.lower() + ".pickle") # Serializamos
     return name, model
+
 
 def create_vocabulary(path, num_docs, stem):
     """
