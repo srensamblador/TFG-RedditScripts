@@ -81,9 +81,13 @@ def main(args):
     # Metemos aquí los modelos que queramos entrenar en esta ejecución del script
     models = {
         "LogisticRegression": LogisticRegression(random_state=args.seed),
-        #"GiniTree": DecisionTreeClassifier(random_state=args.seed),
-        #"IDFTree": DecisionTreeClassifier(criterion="entropy", random_state=args.seed),
-        "Bayes": MultinomialNB()
+        "GiniTree": DecisionTreeClassifier(random_state=args.seed),
+        "IDFTree": DecisionTreeClassifier(criterion="entropy", random_state=args.seed),
+        "Bayes": MultinomialNB(),
+        "NN_1L_150": MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed),
+        "NN_2L_150": MLPClassifier(hidden_layer_sizes=(150,150), random_state=args.seed),
+        "NN_1L_300": MLPClassifier(hidden_layer_sizes=(300), random_state=args.seed),
+        "SVM_Linear": svm.LinearSVC()
     }
 
     ## Ejemplos
@@ -96,7 +100,7 @@ def main(args):
     # model = svm.SVC(cache_size=10000, verbose=True) # TODO Probar parámetro cache_size
     
     # Para entrenar los modelos secuencialmente
-    train_models(models, matrix_training, tags_training, n_jobs=2)
+    train_models(models, matrix_training, tags_training, n_jobs=8)
 
     print("Evaluando modelos...")
     num_test_docs = file_length(args.test)
