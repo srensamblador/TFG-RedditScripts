@@ -356,6 +356,10 @@ def preprocess_text(data, stem):
 
     words = text.split()
 
+    # Eliminamos palabras ridículamente largas ya que no tienen ningún sentido y además
+    # pueden romper el Stemmer
+    words = [word for word in words if len(word) < 200]
+
     # Estematizar
     if stem:
         words = [ps.stem(word) for word in words]
