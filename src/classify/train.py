@@ -53,7 +53,7 @@ def main(args):
     # del preprocesamiento previo al entrenamiento en disco, para ahorrarnos estos pasos en ejecuciones posteriores
 
     print("Generando el vocabulario...")
-	"""
+    """
     vocabulary = create_vocabulary(args.training, num_training_docs, args.stem)    
     # De esta forma, podemos serializar el vocabulario para no tener que recalcularlo cuando entrenemos otros modelos
     joblib.dump(vocabulary, "pickles/vocabulary.pickle")
@@ -101,7 +101,7 @@ def main(args):
     # model = svm.SVC(cache_size=10000, verbose=True) # TODO Probar parámetro cache_size
     
     # Elegir el número de hilos mediante n_jobs
-	train_models(models, matrix_training, tags_training, n_jobs=1) 
+    train_models(models, matrix_training, tags_training, n_jobs=1)
 
     print("Evaluando modelos...")
     num_test_docs = file_length(args.test)
