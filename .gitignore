@@ -2,6 +2,7 @@ dumps/*
 splitted_csv/*
 __pycache__/*
 *.pyc
+data/*
 dataset-users/*
 datasets/*
 pickles/*
@@ -9,3 +10,4 @@ modelos/*
 *.csv
 *.pickle
 *.npz
+.venv
