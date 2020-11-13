@@ -92,41 +92,42 @@ def main(args):
     # del preprocesamiento previo al entrenamiento en disco, para ahorrarnos estos pasos en ejecuciones posteriores
 
     print(&#34;Generando el vocabulario...&#34;)
+    &#34;&#34;&#34;
     vocabulary = create_vocabulary(args.training, num_training_docs, args.stem)    
     # De esta forma, podemos serializar el vocabulario para no tener que recalcularlo cuando entrenemos otros modelos
     joblib.dump(vocabulary, &#34;pickles/vocabulary.pickle&#34;)
     &#34;&#34;&#34;
     # Si tenemos el vocabulario ya en disco, se cargaría así    
     vocabulary = joblib.load(&#34;pickles/vocabulary.pickle&#34;)    
-    &#34;&#34;&#34;
     print(&#34;Obteniendo etiquetas...&#34;)
+    &#34;&#34;&#34;
     tags_training = get_tags(args.training, num_training_docs)
     # Serializar etiquetas
     joblib.dump(tags_training, &#34;pickles/tags.pickle&#34;)    
     &#34;&#34;&#34;    
     # Cargarlas desde disco
     tags_training = joblib.load(&#34;pickles/tags.pickle&#34;)
-    &#34;&#34;&#34;
     print(&#34;Extrayendo características...&#34;)
+    &#34;&#34;&#34;
     matrix_training = extract_features(args.training, vocabulary, num_training_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features.npz&#34;, matrix_training)
     &#34;&#34;&#34;
     # Cargar desde disco
     matrix_training = sp.load_npz(&#34;pickles/features.npz&#34;)
-    &#34;&#34;&#34;
 
     print(&#34;Entrenando modelos...&#34;)
     # Metemos aquí los modelos que queramos entrenar en esta ejecución del script
     models = {
-        &#34;LogisticRegression&#34;: LogisticRegression(random_state=args.seed),
-        &#34;GiniTree&#34;: DecisionTreeClassifier(random_state=args.seed),
-        &#34;IDFTree&#34;: DecisionTreeClassifier(criterion=&#34;entropy&#34;, random_state=args.seed),
-        &#34;Bayes&#34;: MultinomialNB(),
-        &#34;NN_1L_150&#34;: MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed),
-        &#34;NN_2L_150&#34;: MLPClassifier(hidden_layer_sizes=(150,150), random_state=args.seed),
-        &#34;NN_1L_300&#34;: MLPClassifier(hidden_layer_sizes=(300), random_state=args.seed),
-        &#34;SVM_Linear&#34;: svm.LinearSVC()
+        #&#34;LogisticRegression&#34;: LogisticRegression(random_state=args.seed),
+        #&#34;GiniTree&#34;: DecisionTreeClassifier(random_state=args.seed),
+        #&#34;IDFTree&#34;: DecisionTreeClassifier(criterion=&#34;entropy&#34;, random_state=args.seed),
+        #&#34;Bayes&#34;: MultinomialNB(),
+        #&#34;NN_1L_150&#34;: MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed),
+        #&#34;NN_2L_150&#34;: MLPClassifier(hidden_layer_sizes=(150,150), random_state=args.seed),
+        #&#34;NN_1L_300&#34;: MLPClassifier(hidden_layer_sizes=(300), random_state=args.seed),
+        #&#34;SVM_Linear&#34;: svm.LinearSVC(),
+                &#34;NN_3L_150&#34;: MLPClassifier(hidden_layer_sizes=(150,150,150), random_state=args.seed)
     }
 
     ## Ejemplos
@@ -138,27 +139,27 @@ def main(args):
     # model = svm.LinearSVC(verbose=True)
     # model = svm.SVC(cache_size=10000, verbose=True) # TODO Probar parámetro cache_size
     
-    # Para entrenar los modelos secuencialmente
-    train_models(models, matrix_training, tags_training, n_jobs=8)
+    # Elegir el número de hilos mediante n_jobs
+    train_models(models, matrix_training, tags_training, n_jobs=1)
 
     print(&#34;Evaluando modelos...&#34;)
     num_test_docs = file_length(args.test)
     print(&#34;Obteniendo etiquetas del conjunto de test...&#34;)    
+    &#34;&#34;&#34;
     tags_test = get_tags(args.test, num_test_docs)   
     # Serializar
     joblib.dump(tags_test, &#34;pickles/tags_test.pickle&#34;)
     &#34;&#34;&#34;
     # Alternativamente, cargar de disco
     tags_test = joblib.load(&#34;pickles/tags_test.pickle&#34;)
-    &#34;&#34;&#34;
     print(&#34;Extrayendo características del conjunto de test...&#34;)   
+    &#34;&#34;&#34;
     matrix_test = extract_features(args.test, vocabulary, num_test_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features_test.npz&#34;, matrix_test)    
     &#34;&#34;&#34;
     # Cargar de disco
     matrix_test = sp.load_npz(&#34;pickles/features_test.npz&#34;)    
-    &#34;&#34;&#34;
 
     print(&#34;Generando predicciones para el conjunto de test...&#34;)
     for model in models:
@@ -725,41 +726,42 @@ Matriz con las etiquetas del dataset especificado</p></div>
     # del preprocesamiento previo al entrenamiento en disco, para ahorrarnos estos pasos en ejecuciones posteriores
 
     print(&#34;Generando el vocabulario...&#34;)
+    &#34;&#34;&#34;
     vocabulary = create_vocabulary(args.training, num_training_docs, args.stem)    
     # De esta forma, podemos serializar el vocabulario para no tener que recalcularlo cuando entrenemos otros modelos
     joblib.dump(vocabulary, &#34;pickles/vocabulary.pickle&#34;)
     &#34;&#34;&#34;
     # Si tenemos el vocabulario ya en disco, se cargaría así    
     vocabulary = joblib.load(&#34;pickles/vocabulary.pickle&#34;)    
-    &#34;&#34;&#34;
     print(&#34;Obteniendo etiquetas...&#34;)
+    &#34;&#34;&#34;
     tags_training = get_tags(args.training, num_training_docs)
     # Serializar etiquetas
     joblib.dump(tags_training, &#34;pickles/tags.pickle&#34;)    
     &#34;&#34;&#34;    
     # Cargarlas desde disco
     tags_training = joblib.load(&#34;pickles/tags.pickle&#34;)
-    &#34;&#34;&#34;
     print(&#34;Extrayendo características...&#34;)
+    &#34;&#34;&#34;
     matrix_training = extract_features(args.training, vocabulary, num_training_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features.npz&#34;, matrix_training)
     &#34;&#34;&#34;
     # Cargar desde disco
     matrix_training = sp.load_npz(&#34;pickles/features.npz&#34;)
-    &#34;&#34;&#34;
 
     print(&#34;Entrenando modelos...&#34;)
     # Metemos aquí los modelos que queramos entrenar en esta ejecución del script
     models = {
-        &#34;LogisticRegression&#34;: LogisticRegression(random_state=args.seed),
-        &#34;GiniTree&#34;: DecisionTreeClassifier(random_state=args.seed),
-        &#34;IDFTree&#34;: DecisionTreeClassifier(criterion=&#34;entropy&#34;, random_state=args.seed),
-        &#34;Bayes&#34;: MultinomialNB(),
-        &#34;NN_1L_150&#34;: MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed),
-        &#34;NN_2L_150&#34;: MLPClassifier(hidden_layer_sizes=(150,150), random_state=args.seed),
-        &#34;NN_1L_300&#34;: MLPClassifier(hidden_layer_sizes=(300), random_state=args.seed),
-        &#34;SVM_Linear&#34;: svm.LinearSVC()
+        #&#34;LogisticRegression&#34;: LogisticRegression(random_state=args.seed),
+        #&#34;GiniTree&#34;: DecisionTreeClassifier(random_state=args.seed),
+        #&#34;IDFTree&#34;: DecisionTreeClassifier(criterion=&#34;entropy&#34;, random_state=args.seed),
+        #&#34;Bayes&#34;: MultinomialNB(),
+        #&#34;NN_1L_150&#34;: MLPClassifier(hidden_layer_sizes=(150), random_state=args.seed),
+        #&#34;NN_2L_150&#34;: MLPClassifier(hidden_layer_sizes=(150,150), random_state=args.seed),
+        #&#34;NN_1L_300&#34;: MLPClassifier(hidden_layer_sizes=(300), random_state=args.seed),
+        #&#34;SVM_Linear&#34;: svm.LinearSVC(),
+                &#34;NN_3L_150&#34;: MLPClassifier(hidden_layer_sizes=(150,150,150), random_state=args.seed)
     }
 
     ## Ejemplos
@@ -771,27 +773,27 @@ Matriz con las etiquetas del dataset especificado</p></div>
     # model = svm.LinearSVC(verbose=True)
     # model = svm.SVC(cache_size=10000, verbose=True) # TODO Probar parámetro cache_size
     
-    # Para entrenar los modelos secuencialmente
-    train_models(models, matrix_training, tags_training, n_jobs=8)
+    # Elegir el número de hilos mediante n_jobs
+    train_models(models, matrix_training, tags_training, n_jobs=1)
 
     print(&#34;Evaluando modelos...&#34;)
     num_test_docs = file_length(args.test)
     print(&#34;Obteniendo etiquetas del conjunto de test...&#34;)    
+    &#34;&#34;&#34;
     tags_test = get_tags(args.test, num_test_docs)   
     # Serializar
     joblib.dump(tags_test, &#34;pickles/tags_test.pickle&#34;)
     &#34;&#34;&#34;
     # Alternativamente, cargar de disco
     tags_test = joblib.load(&#34;pickles/tags_test.pickle&#34;)
-    &#34;&#34;&#34;
     print(&#34;Extrayendo características del conjunto de test...&#34;)   
+    &#34;&#34;&#34;
     matrix_test = extract_features(args.test, vocabulary, num_test_docs, args.stem)
     # Serializar
     sp.save_npz(&#34;pickles/features_test.npz&#34;, matrix_test)    
     &#34;&#34;&#34;
     # Cargar de disco
     matrix_test = sp.load_npz(&#34;pickles/features_test.npz&#34;)    
-    &#34;&#34;&#34;
 
     print(&#34;Generando predicciones para el conjunto de test...&#34;)
     for model in models:
