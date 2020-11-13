@@ -15,7 +15,7 @@
 import argparse
 import os
 import pickle
-from sklearn.metrics import confusion_matrix, cohen_kappa_score, precision_score, recall_score, accuracy_score, f1_score
+from sklearn.metrics import confusion_matrix, cohen_kappa_score, precision_score, recall_score, accuracy_score, f1_score, roc_auc_score
 import progressbar as pb
 import joblib
 from scipy import sparse as sp
@@ -86,7 +86,8 @@ def get_stats(results, tags_test):
             "accuracy": accuracy_score(tags_test, results),
             "f1_score": f1_score(tags_test, results, labels=[0,1]),
             "micro_avg": f1_score(tags_test, results, labels=[0,1], average="micro"),
-            "macro_avg": f1_score(tags_test, results, labels=[0,1], average="macro")
+            "macro_avg": f1_score(tags_test, results, labels=[0,1], average="macro"),
+            "auc": roc_auc_score(tags_test, results, labels=[0,1])
     }
     
 
