@@ -11,3 +11,4 @@ modelos/*
 *.pickle
 *.npz
 .venv
+*.png
