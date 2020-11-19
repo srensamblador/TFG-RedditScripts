@@ -32,6 +32,7 @@ a evaluar</p>
 <li>-t, &ndash;tags: .pickle con las etiquetas del conjunto de test extraídas en <code>src.train</code></li>
 <li>-f, &ndash;features: .npz con la matriz de características del conjunto de test</li>
 <li>-o, &ndash;output: nombre del fichero .csv a generar como salida</li>
+<li>-p, &ndash;plot: indica si se generarán las curvas ROC. En caso de ser así, se almacenarán en un .png con el mismo nombre que el .csv de las métricas</li>
 </ul>
 <details class="source">
 <summary>
@@ -49,48 +50,65 @@ a evaluar</p>
     * -t, --tags: .pickle con las etiquetas del conjunto de test extraídas en `src.train`
     * -f, --features: .npz con la matriz de características del conjunto de test
     * -o, --output: nombre del fichero .csv a generar como salida
+    * -p, --plot: indica si se generarán las curvas ROC. En caso de ser así, se almacenarán en un .png con el mismo nombre que el .csv de las métricas
 &#34;&#34;&#34;
 
 import argparse
 import os
 import pickle
-from sklearn.metrics import confusion_matrix, cohen_kappa_score, precision_score, recall_score, accuracy_score, f1_score, roc_auc_score
+from sklearn.metrics import confusion_matrix, cohen_kappa_score, precision_score, recall_score, accuracy_score, f1_score, roc_auc_score, roc_curve
 import progressbar as pb
 import joblib
 from scipy import sparse as sp
+from matplotlib import pyplot as plt
 
 __author__ = &#34;Samuel Cifuentes García&#34;
 
 def main(args):
     print(&#34;Cargando modelos...&#34;)
     filenames = [file for file in os.listdir(args.source) if file.endswith(&#34;.pickle&#34;)]
-
     models = {}
     for filename in filenames:
         models[filename] = joblib.load(args.source + &#34;/&#34; + filename)
 
-    print(&#34;Cargando datos del conjunto de test...&#34;)
-    
+    print(&#34;Cargando datos del conjunto de test...&#34;)    
     tags_test = joblib.load(args.tags)
     matrix_test = sp.load_npz(args.features)
 
-    print(&#34;Evaluando modelos...&#34;)
+    print(&#34;Evaluando modelos...&#34;)    
     stats = {}
+
+    if args.plot:
+        # Al usasr un objeto de ejes podemos graficar todas las ROC sobre la misma figura
+        _, axes = plt.subplots()
+        axes.set_xlabel(&#34;False Positive Rate&#34;)
+        axes.set_ylabel(&#34;True Positive Rate&#34;)
+
     bar = pb.ProgressBar()
     for name, model in bar(models.items()):
-        results = model.predict(matrix_test)
+        results = model.predict(matrix_test)        
         stats[name] = get_stats(results, tags_test)
 
-    print(&#34;Volcando resultados...&#34;)
-    with open(args.output, &#34;w&#34;) as f:
-        f.write(&#34;Model;Confusion Matrix;Kappa;Precision;Recall;Accuracy;F1_score;Micro_avg;Macro_avg\n&#34;) # Cabeceras
+        if args.plot:
+            # Curva ROC
+            fpr, tpr, _ = roc_curve(tags_test, results)
+            plt.plot(fpr, tpr, label=f&#34;{name.replace(&#39;.pickle&#39;, &#39;&#39;)} ({stats[name][&#39;auc&#39;]:.2f})&#34;)
 
+    print(&#34;Volcando resultados...&#34;)
+    # Métricas numéricas
+    with open(args.output, &#34;w&#34;) as f:
+        f.write(&#34;Model;Confusion Matrix;Kappa;Precision;Recall;Accuracy;F1_score;Micro_avg;Macro_avg;AUC\n&#34;) # Cabeceras
         for name, data in stats.items():
             matrix = data[&#34;confusion_matrix&#34;]
             formatted_matrix = f&#34;{matrix[0][0]} {matrix[0][1]}\\{matrix[1][0]} {matrix[1][1]}&#34;
             line = &#34;;&#34;.join((name, formatted_matrix, str(data[&#34;kappa&#34;]), str(data[&#34;precision&#34;]), str(data[&#34;recall&#34;]),
-                str(data[&#34;accuracy&#34;]), str(data[&#34;f1_score&#34;]), str(data[&#34;micro_avg&#34;]), str(data[&#34;macro_avg&#34;]), &#34;\n&#34;))
+                str(data[&#34;accuracy&#34;]), str(data[&#34;f1_score&#34;]), str(data[&#34;micro_avg&#34;]), str(data[&#34;macro_avg&#34;]), str(data[&#34;auc&#34;]), &#34;\n&#34;))
             f.write(line)
+
+    # Gráfica con las ROC
+    plt.legend()
+    plot_filename = &#34;&#34;.join(args.output.split(&#34;.&#34;)[:-1]) + &#34;.png&#34;
+    plt.savefig(plot_filename)
 
 def get_stats(results, tags_test):
     &#34;&#34;&#34;
@@ -104,6 +122,7 @@ def get_stats(results, tags_test):
         - F1_score  
         - micro_avg   
         - macro_avg    
+        - AUC
 
         Parámetros
         ----------
@@ -141,6 +160,7 @@ def parse_args():
     parser.add_argument(&#34;-t&#34;, &#34;--tags&#34;, default=&#34;pickles/tags_test.pickle&#34;, help=&#34;Ruta de las etiquetas del conjunto de testing obtenidas durante el entrenamiento&#34;)
     parser.add_argument(&#34;-f&#34;, &#34;--features&#34;, default=&#34;pickles/features_test.npz&#34;, help=&#34;Ruta de las características del conjunto de testing obtenidas durante el entrenamiento&#34;)
     parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;model_stats.csv&#34;, help=&#34;.csv donde se volcarán los resultados&#34;)
+    parser.add_argument(&#34;-p&#34;, &#34;--plot&#34;, action=&#34;store_true&#34;, help=&#34;Indica si se debe generar una gráfica con las curvas ROC. En caso afirmativo, se creará un .png con el mismo nombre que el .csv de las métricas&#34;)
     return parser.parse_args()
 
 
@@ -170,7 +190,8 @@ Las métricas empleadas son:<br>
 - F1_score<br>
 - micro_avg <br>
 - macro_avg
-</p>
+<br>
+- AUC</p>
 <pre><code>    Parámetros
     ----------
     results
@@ -200,6 +221,7 @@ tags_test
         - F1_score  
         - micro_avg   
         - macro_avg    
+        - AUC
 
         Parámetros
         ----------
@@ -238,33 +260,48 @@ tags_test
 <pre><code class="python">def main(args):
     print(&#34;Cargando modelos...&#34;)
     filenames = [file for file in os.listdir(args.source) if file.endswith(&#34;.pickle&#34;)]
-
     models = {}
     for filename in filenames:
         models[filename] = joblib.load(args.source + &#34;/&#34; + filename)
 
-    print(&#34;Cargando datos del conjunto de test...&#34;)
-    
+    print(&#34;Cargando datos del conjunto de test...&#34;)    
     tags_test = joblib.load(args.tags)
     matrix_test = sp.load_npz(args.features)
 
-    print(&#34;Evaluando modelos...&#34;)
+    print(&#34;Evaluando modelos...&#34;)    
     stats = {}
+
+    if args.plot:
+        # Al usasr un objeto de ejes podemos graficar todas las ROC sobre la misma figura
+        _, axes = plt.subplots()
+        axes.set_xlabel(&#34;False Positive Rate&#34;)
+        axes.set_ylabel(&#34;True Positive Rate&#34;)
+
     bar = pb.ProgressBar()
     for name, model in bar(models.items()):
-        results = model.predict(matrix_test)
+        results = model.predict(matrix_test)        
         stats[name] = get_stats(results, tags_test)
 
-    print(&#34;Volcando resultados...&#34;)
-    with open(args.output, &#34;w&#34;) as f:
-        f.write(&#34;Model;Confusion Matrix;Kappa;Precision;Recall;Accuracy;F1_score;Micro_avg;Macro_avg\n&#34;) # Cabeceras
+        if args.plot:
+            # Curva ROC
+            fpr, tpr, _ = roc_curve(tags_test, results)
+            plt.plot(fpr, tpr, label=f&#34;{name.replace(&#39;.pickle&#39;, &#39;&#39;)} ({stats[name][&#39;auc&#39;]:.2f})&#34;)
 
+    print(&#34;Volcando resultados...&#34;)
+    # Métricas numéricas
+    with open(args.output, &#34;w&#34;) as f:
+        f.write(&#34;Model;Confusion Matrix;Kappa;Precision;Recall;Accuracy;F1_score;Micro_avg;Macro_avg;AUC\n&#34;) # Cabeceras
         for name, data in stats.items():
             matrix = data[&#34;confusion_matrix&#34;]
             formatted_matrix = f&#34;{matrix[0][0]} {matrix[0][1]}\\{matrix[1][0]} {matrix[1][1]}&#34;
             line = &#34;;&#34;.join((name, formatted_matrix, str(data[&#34;kappa&#34;]), str(data[&#34;precision&#34;]), str(data[&#34;recall&#34;]),
-                str(data[&#34;accuracy&#34;]), str(data[&#34;f1_score&#34;]), str(data[&#34;micro_avg&#34;]), str(data[&#34;macro_avg&#34;]), &#34;\n&#34;))
-            f.write(line)</code></pre>
+                str(data[&#34;accuracy&#34;]), str(data[&#34;f1_score&#34;]), str(data[&#34;micro_avg&#34;]), str(data[&#34;macro_avg&#34;]), str(data[&#34;auc&#34;]), &#34;\n&#34;))
+            f.write(line)
+
+    # Gráfica con las ROC
+    plt.legend()
+    plot_filename = &#34;&#34;.join(args.output.split(&#34;.&#34;)[:-1]) + &#34;.png&#34;
+    plt.savefig(plot_filename)</code></pre>
 </details>
 </dd>
 <dt id="src.classify.model_stats.parse_args"><code class="name flex">
@@ -287,6 +324,7 @@ tags_test
     parser.add_argument(&#34;-t&#34;, &#34;--tags&#34;, default=&#34;pickles/tags_test.pickle&#34;, help=&#34;Ruta de las etiquetas del conjunto de testing obtenidas durante el entrenamiento&#34;)
     parser.add_argument(&#34;-f&#34;, &#34;--features&#34;, default=&#34;pickles/features_test.npz&#34;, help=&#34;Ruta de las características del conjunto de testing obtenidas durante el entrenamiento&#34;)
     parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;model_stats.csv&#34;, help=&#34;.csv donde se volcarán los resultados&#34;)
+    parser.add_argument(&#34;-p&#34;, &#34;--plot&#34;, action=&#34;store_true&#34;, help=&#34;Indica si se debe generar una gráfica con las curvas ROC. En caso afirmativo, se creará un .png con el mismo nombre que el .csv de las métricas&#34;)
     return parser.parse_args()</code></pre>
 </details>
 </dd>
