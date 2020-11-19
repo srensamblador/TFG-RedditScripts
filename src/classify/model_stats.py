@@ -82,6 +82,7 @@ def get_stats(results, tags_test):
         - F1_score  
         - micro_avg   
         - macro_avg    
+        - AUC
 
         Parámetros
         ----------
