@@ -6,3 +6,4 @@ nltk
 scikit_learn==0.23.2
 ndjson
 joblib
+matplotlib
