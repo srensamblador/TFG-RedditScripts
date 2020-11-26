@@ -22,7 +22,7 @@
 
     Ejemplo de línea de ejecución.
 
-        $ python main.py -s loneliness -d dumps -e http://localhost:9200 -b 2019-12-31
+        $ python main.py -s lonely -d dumps -e http://localhost:9200 -b 2019-12-31
 """
 
 from psaw import PushshiftAPI
