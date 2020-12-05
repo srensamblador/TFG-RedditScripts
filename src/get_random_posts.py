@@ -9,7 +9,7 @@
     Parámetros
     ----------
     * -s, --source: fichero .csv con los intervalos de tiempo y el número de post en cada uno. Por defecto, `hourly_posts.csv`
-    * -o, --output: fichero donde se volcarán los post. Por defecto, `randombaselineDump.json`
+    * -o, --output: fichero donde se volcarán los post. Por defecto, `randombaselineDump.ndjson`
     * -e, --elasticsearch: dirección del servidor elastic contra el que indexar. Por defecto, http://localhost:9200
 """
 
