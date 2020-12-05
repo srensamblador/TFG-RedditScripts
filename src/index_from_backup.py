@@ -27,22 +27,22 @@ def main(args):
 
     # Establecer conexión a Elastic
     es = Elasticsearch(args.elasticsearch)
-    
-    # Se crean los indexadores
-    # indexers = [Indexer(es, "reddit-loneliness"), NgramIndexer(es, "reddit-loneliness-ngram")]
 
     # Caso aplicar un filtro
-    subreddits = []
-    with open("subreddits_purgar.txt") as f:
-        for sub in f:
-            subreddits.append(sub.strip())
-    subreddit_filter = {"subreddit": subreddits}
-
-    indexers = [Indexer(es, "phase-b-purga", filter_criteria=subreddit_filter)]
-    for indexer in indexers:
-        if not indexer.index_exists():
-            print("Creado índice: " + indexer.index_name)
-            indexer.create_index()
+    indexer_filter = None
+    if args.filter:
+        with open(args.filter) as f:
+            try:
+                indexer_filter = json.load(f)
+            except:
+                print("Error loading filter .json")
+                exit(1)
+    
+    indexer = Indexer(es, args.index, filter_criteria=indexer_filter)
+       
+    if not indexer.index_exists():
+        print("Creado índice: " + indexer.index_name)
+        indexer.create_index()
 
     for filename in json_files:
         path = args.data_dir + "/" + filename
@@ -65,7 +65,7 @@ def main(args):
         ])
 
         while block:
-            index_block(block, indexers)
+            index_block(block, indexer)
             block = f.readlines(block_size)
 
             indexed_size += block_size
@@ -77,30 +77,28 @@ def main(args):
         print("- Stats:")
         
         # Se imprimen las estadísticas del indexado
-        for indexer in indexers:
-            print("\t*%s - Indexed: %d, Errors:%d, Filtered:%d"%(indexer.index_name, indexer.stats["indexed"], indexer.stats["errors"], indexer.stats["filtered"]))
+        print("\t*%s - Indexed: %d, Errors:%d, Filtered:%d"%(indexer.index_name, indexer.stats["indexed"], indexer.stats["errors"], indexer.stats["filtered"]))
 
         print(filename + " completado")
 
 
-def index_block(block, indexers):
+def index_block(block, indexer):
     """
         Procesa un bloque de líneas de texto y delega en los indexers el indexado de los documentos.
 
         Parámetros
         ----------
-        block: list of str
-            Lista de documentos json, cargados como string desde fichero
-        indexers: list of Indexer
-            Lista de Indexers con los que se indexarán los documentos
+        block: list of str  
+            \tLista de documentos json, cargados como string desde fichero
+        indexer: Indexer  
+            \tIndexador que procesará los documentos
     """
     data = []
     for line in block:
         post = json.loads(line)
         data.append(post)
-
-    for indexer in indexers:
-        indexer.index_documents(data)
+    
+    indexer.index_documents(data)
 
 
 def parse_args():
@@ -108,7 +106,9 @@ def parse_args():
         Procesamiento de los argumentos con los que se ejecutó el programa
     """
     parser = argparse.ArgumentParser(description="Script para cargar documentos desde ficheros .json e indexarlos en un servidor Elastic")
+    parser.add_argument("-i", "--index", help="Nombre del índice en el que indexar los posts", required=True)
     parser.add_argument("-d", "--data-dir", help="Directorio donde se encuentran los .json a indexar", required=True)
+    parser.add_argument("-f", "--filter", help="Opcionalmente, se puede proporcionar un filtro a los indexadores. Será un .json con los campos y valores a filtrar.")
     parser.add_argument("-b", "--block-size", type=int, default=8, help="Tamaño de los bloques de líneas a indexar en Mb")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="Dirección del servidor Elasticsearch contra el que indexar")
     return parser.parse_args()

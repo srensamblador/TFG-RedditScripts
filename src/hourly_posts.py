@@ -10,7 +10,7 @@
     Parámetros
     ----------
     * -e, --elasticsearch: dirección del servidor Elasticsearch. Por defecto, http://localhost:9200
-    * -i, --index: nombre del índice sobre el que realizarán las consultas. Por defecto, "reddit-loneliness"
+    * -i, --index: nombre del índice sobre el que realizarán las consultas.
     * -o, --output: fichero donde se serializarán los resultados. Por defecto, "hourly_posts.csv"
 """
 
@@ -197,8 +197,7 @@ def parse_args():
         description="Script para obtener el número de post por hora en Elastic")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200",
                         help="dirección del servidor Elasticsearch")
-    parser.add_argument("-i", "--index", default="reddit-loneliness",
-                        help="nombre del índice a procesar")
+    parser.add_argument("-i", "--index", help="nombre del índice a procesar", required=True)
     parser.add_argument("-o", "--output", default="hourly_posts.csv",
                         help="Archivo donde se almacenarán los resultados")
     return parser.parse_args()
