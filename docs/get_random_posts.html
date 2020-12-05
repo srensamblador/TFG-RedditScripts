@@ -167,7 +167,7 @@ def elastic_index(results):
         results: list
             Lista de documentos a indexar
     &#34;&#34;&#34;
-    indexers = [Indexer(es, &#34;reddit-loneliness&#34;), NgramIndexer(es, &#34;reddit-loneliness-ngram&#34;)]
+    indexers = [Indexer(es, &#34;subreddit-lonely&#34;), NgramIndexer(es, &#34;subreddit-lonely-ngram&#34;)]
     for indexer in indexers:
         if not indexer.index_exists():
             print(&#34;Creado índice: &#34; + indexer.index_name)
@@ -181,7 +181,7 @@ def parse_args():
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para la extracción de submissions de Reddit a través de pushshift.io&#34;)
     parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;hourly_posts.csv&#34;, help=&#34;Fichero con la lista de post por intervarlo de tiempo.&#34;)
-    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;randombaselineDump.json&#34;, help=&#34;Fichero donde se volcarán los post&#34;)
+    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;randombaselineDump.ndjson&#34;, help=&#34;Fichero donde se volcarán los post&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;dirección del servidor Elasticsearch contra el que se indexará&#34;)
     return parser.parse_args()
 
@@ -255,7 +255,7 @@ results: list
         results: list
             Lista de documentos a indexar
     &#34;&#34;&#34;
-    indexers = [Indexer(es, &#34;reddit-loneliness&#34;), NgramIndexer(es, &#34;reddit-loneliness-ngram&#34;)]
+    indexers = [Indexer(es, &#34;subreddit-lonely&#34;), NgramIndexer(es, &#34;subreddit-lonely-ngram&#34;)]
     for indexer in indexers:
         if not indexer.index_exists():
             print(&#34;Creado índice: &#34; + indexer.index_name)
@@ -340,7 +340,7 @@ Lista de intervalos en forma de tupla (TimestampInicio, TimestampFinal, NumPosts
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para la extracción de submissions de Reddit a través de pushshift.io&#34;)
     parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;hourly_posts.csv&#34;, help=&#34;Fichero con la lista de post por intervarlo de tiempo.&#34;)
-    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;randombaselineDump.json&#34;, help=&#34;Fichero donde se volcarán los post&#34;)
+    parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;randombaselineDump.ndjson&#34;, help=&#34;Fichero donde se volcarán los post&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;dirección del servidor Elasticsearch contra el que se indexará&#34;)
     return parser.parse_args()</code></pre>
 </details>
