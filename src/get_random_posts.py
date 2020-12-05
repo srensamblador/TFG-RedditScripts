@@ -128,7 +128,7 @@ def elastic_index(results):
         results: list
             Lista de documentos a indexar
     """
-    indexers = [Indexer(es, "reddit-loneliness"), NgramIndexer(es, "reddit-loneliness-ngram")]
+    indexers = [Indexer(es, "subreddit-lonely"), NgramIndexer(es, "subreddit-lonely-ngram")]
     for indexer in indexers:
         if not indexer.index_exists():
             print("Creado índice: " + indexer.index_name)
@@ -142,7 +142,7 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(description="Script para la extracción de submissions de Reddit a través de pushshift.io")
     parser.add_argument("-s", "--source", default="hourly_posts.csv", help="Fichero con la lista de post por intervarlo de tiempo.")
-    parser.add_argument("-o", "--output", default="randombaselineDump.json", help="Fichero donde se volcarán los post")
+    parser.add_argument("-o", "--output", default="randombaselineDump.ndjson", help="Fichero donde se volcarán los post")
     parser.add_argument("-e", "--elasticsearch", default="http://localhost:9200", help="dirección del servidor Elasticsearch contra el que se indexará")
     return parser.parse_args()
 
