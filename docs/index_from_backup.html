@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>src.index_from_backup API documentation</title>
 <meta name="description" content="Script para indexar documentos en Elastic a partir de ficheros .json de backup
 El script procesa los ficheros .json (incluido comprimidos en .gz) …" />
@@ -65,22 +65,22 @@ def main(args):
 
     # Establecer conexión a Elastic
     es = Elasticsearch(args.elasticsearch)
-    
-    # Se crean los indexadores
-    # indexers = [Indexer(es, &#34;reddit-loneliness&#34;), NgramIndexer(es, &#34;reddit-loneliness-ngram&#34;)]
 
     # Caso aplicar un filtro
-    subreddits = []
-    with open(&#34;subreddits_purgar.txt&#34;) as f:
-        for sub in f:
-            subreddits.append(sub.strip())
-    subreddit_filter = {&#34;subreddit&#34;: subreddits}
-
-    indexers = [Indexer(es, &#34;phase-b-purga&#34;, filter_criteria=subreddit_filter)]
-    for indexer in indexers:
-        if not indexer.index_exists():
-            print(&#34;Creado índice: &#34; + indexer.index_name)
-            indexer.create_index()
+    indexer_filter = None
+    if args.filter:
+        with open(args.filter) as f:
+            try:
+                indexer_filter = json.load(f)
+            except:
+                print(&#34;Error loading filter .json&#34;)
+                exit(1)
+    
+    indexer = Indexer(es, args.index, filter_criteria=indexer_filter)
+       
+    if not indexer.index_exists():
+        print(&#34;Creado índice: &#34; + indexer.index_name)
+        indexer.create_index()
 
     for filename in json_files:
         path = args.data_dir + &#34;/&#34; + filename
@@ -103,7 +103,7 @@ def main(args):
         ])
 
         while block:
-            index_block(block, indexers)
+            index_block(block, indexer)
             block = f.readlines(block_size)
 
             indexed_size += block_size
@@ -115,30 +115,28 @@ def main(args):
         print(&#34;- Stats:&#34;)
         
         # Se imprimen las estadísticas del indexado
-        for indexer in indexers:
-            print(&#34;\t*%s - Indexed: %d, Errors:%d, Filtered:%d&#34;%(indexer.index_name, indexer.stats[&#34;indexed&#34;], indexer.stats[&#34;errors&#34;], indexer.stats[&#34;filtered&#34;]))
+        print(&#34;\t*%s - Indexed: %d, Errors:%d, Filtered:%d&#34;%(indexer.index_name, indexer.stats[&#34;indexed&#34;], indexer.stats[&#34;errors&#34;], indexer.stats[&#34;filtered&#34;]))
 
         print(filename + &#34; completado&#34;)
 
 
-def index_block(block, indexers):
+def index_block(block, indexer):
     &#34;&#34;&#34;
         Procesa un bloque de líneas de texto y delega en los indexers el indexado de los documentos.
 
         Parámetros
         ----------
-        block: list of str
-            Lista de documentos json, cargados como string desde fichero
-        indexers: list of Indexer
-            Lista de Indexers con los que se indexarán los documentos
+        block: list of str  
+            \tLista de documentos json, cargados como string desde fichero
+        indexer: Indexer  
+            \tIndexador que procesará los documentos
     &#34;&#34;&#34;
     data = []
     for line in block:
         post = json.loads(line)
         data.append(post)
-
-    for indexer in indexers:
-        indexer.index_documents(data)
+    
+    indexer.index_documents(data)
 
 
 def parse_args():
@@ -146,7 +144,9 @@ def parse_args():
         Procesamiento de los argumentos con los que se ejecutó el programa
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para cargar documentos desde ficheros .json e indexarlos en un servidor Elastic&#34;)
+    parser.add_argument(&#34;-i&#34;, &#34;--index&#34;, help=&#34;Nombre del índice en el que indexar los posts&#34;, required=True)
     parser.add_argument(&#34;-d&#34;, &#34;--data-dir&#34;, help=&#34;Directorio donde se encuentran los .json a indexar&#34;, required=True)
+    parser.add_argument(&#34;-f&#34;, &#34;--filter&#34;, help=&#34;Opcionalmente, se puede proporcionar un filtro a los indexadores. Será un .json con los campos y valores a filtrar.&#34;)
     parser.add_argument(&#34;-b&#34;, &#34;--block-size&#34;, type=int, default=8, help=&#34;Tamaño de los bloques de líneas a indexar en Mb&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch contra el que indexar&#34;)
     return parser.parse_args()
@@ -163,37 +163,36 @@ if __name__ == &#34;__main__&#34;:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="src.index_from_backup.index_block"><code class="name flex">
-<span>def <span class="ident">index_block</span></span>(<span>block, indexers)</span>
+<span>def <span class="ident">index_block</span></span>(<span>block, indexer)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Procesa un bloque de líneas de texto y delega en los indexers el indexado de los documentos.</p>
 <h2 id="parametros">Parámetros</h2>
-<p>block: list of str
+<p>block: list of str<br>
 Lista de documentos json, cargados como string desde fichero
-indexers: list of Indexer
-Lista de Indexers con los que se indexarán los documentos</p></div>
+indexer: Indexer<br>
+Indexador que procesará los documentos</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def index_block(block, indexers):
+<pre><code class="python">def index_block(block, indexer):
     &#34;&#34;&#34;
         Procesa un bloque de líneas de texto y delega en los indexers el indexado de los documentos.
 
         Parámetros
         ----------
-        block: list of str
-            Lista de documentos json, cargados como string desde fichero
-        indexers: list of Indexer
-            Lista de Indexers con los que se indexarán los documentos
+        block: list of str  
+            \tLista de documentos json, cargados como string desde fichero
+        indexer: Indexer  
+            \tIndexador que procesará los documentos
     &#34;&#34;&#34;
     data = []
     for line in block:
         post = json.loads(line)
         data.append(post)
-
-    for indexer in indexers:
-        indexer.index_documents(data)</code></pre>
+    
+    indexer.index_documents(data)</code></pre>
 </details>
 </dd>
 <dt id="src.index_from_backup.main"><code class="name flex">
@@ -211,22 +210,22 @@ Lista de Indexers con los que se indexarán los documentos</p></div>
 
     # Establecer conexión a Elastic
     es = Elasticsearch(args.elasticsearch)
-    
-    # Se crean los indexadores
-    # indexers = [Indexer(es, &#34;reddit-loneliness&#34;), NgramIndexer(es, &#34;reddit-loneliness-ngram&#34;)]
 
     # Caso aplicar un filtro
-    subreddits = []
-    with open(&#34;subreddits_purgar.txt&#34;) as f:
-        for sub in f:
-            subreddits.append(sub.strip())
-    subreddit_filter = {&#34;subreddit&#34;: subreddits}
-
-    indexers = [Indexer(es, &#34;phase-b-purga&#34;, filter_criteria=subreddit_filter)]
-    for indexer in indexers:
-        if not indexer.index_exists():
-            print(&#34;Creado índice: &#34; + indexer.index_name)
-            indexer.create_index()
+    indexer_filter = None
+    if args.filter:
+        with open(args.filter) as f:
+            try:
+                indexer_filter = json.load(f)
+            except:
+                print(&#34;Error loading filter .json&#34;)
+                exit(1)
+    
+    indexer = Indexer(es, args.index, filter_criteria=indexer_filter)
+       
+    if not indexer.index_exists():
+        print(&#34;Creado índice: &#34; + indexer.index_name)
+        indexer.create_index()
 
     for filename in json_files:
         path = args.data_dir + &#34;/&#34; + filename
@@ -249,7 +248,7 @@ Lista de Indexers con los que se indexarán los documentos</p></div>
         ])
 
         while block:
-            index_block(block, indexers)
+            index_block(block, indexer)
             block = f.readlines(block_size)
 
             indexed_size += block_size
@@ -261,8 +260,7 @@ Lista de Indexers con los que se indexarán los documentos</p></div>
         print(&#34;- Stats:&#34;)
         
         # Se imprimen las estadísticas del indexado
-        for indexer in indexers:
-            print(&#34;\t*%s - Indexed: %d, Errors:%d, Filtered:%d&#34;%(indexer.index_name, indexer.stats[&#34;indexed&#34;], indexer.stats[&#34;errors&#34;], indexer.stats[&#34;filtered&#34;]))
+        print(&#34;\t*%s - Indexed: %d, Errors:%d, Filtered:%d&#34;%(indexer.index_name, indexer.stats[&#34;indexed&#34;], indexer.stats[&#34;errors&#34;], indexer.stats[&#34;filtered&#34;]))
 
         print(filename + &#34; completado&#34;)</code></pre>
 </details>
@@ -281,7 +279,9 @@ Lista de Indexers con los que se indexarán los documentos</p></div>
         Procesamiento de los argumentos con los que se ejecutó el programa
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script para cargar documentos desde ficheros .json e indexarlos en un servidor Elastic&#34;)
+    parser.add_argument(&#34;-i&#34;, &#34;--index&#34;, help=&#34;Nombre del índice en el que indexar los posts&#34;, required=True)
     parser.add_argument(&#34;-d&#34;, &#34;--data-dir&#34;, help=&#34;Directorio donde se encuentran los .json a indexar&#34;, required=True)
+    parser.add_argument(&#34;-f&#34;, &#34;--filter&#34;, help=&#34;Opcionalmente, se puede proporcionar un filtro a los indexadores. Será un .json con los campos y valores a filtrar.&#34;)
     parser.add_argument(&#34;-b&#34;, &#34;--block-size&#34;, type=int, default=8, help=&#34;Tamaño de los bloques de líneas a indexar en Mb&#34;)
     parser.add_argument(&#34;-e&#34;, &#34;--elasticsearch&#34;, default=&#34;http://localhost:9200&#34;, help=&#34;Dirección del servidor Elasticsearch contra el que indexar&#34;)
     return parser.parse_args()</code></pre>
@@ -317,7 +317,7 @@ Lista de Indexers con los que se indexarán los documentos</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>
