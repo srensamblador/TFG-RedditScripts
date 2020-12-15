@@ -33,7 +33,7 @@ def main(args):
     print("Cargando datos...")
     with open(args.source, "rb") as f:
         users = pickle.load(f)
-
+   
     print("Generando lista de candidatos...")
     set_users = set()
     for user in users:
@@ -67,7 +67,7 @@ def parse_args():
         Procesamiento de los argumentos con los que se ejecutó el script
     """
     parser = argparse.ArgumentParser(description="Script que genera un csv con candidatos a 'gemelo' y su número de posts")
-    parser.add_argument("-s", "--source", default="pickles/users_and_possible_twins.pickle", help="Ruta del archivo con el diccionario de " 
+    parser.add_argument("-s", "--source", default="pickles/FaseB/users_and_possible_twins.pickle", help="Ruta del archivo con el diccionario de " 
         "usuarios obtenido en el script find_possible_twins.py")
     parser.add_argument("-o", "--output", default="posts_per_user.csv", help="Archivo donde se volcarán los resultados")
     parser.add_argument("-b", "--before", default=date.today(), 

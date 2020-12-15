@@ -1,7 +1,23 @@
 {
-    "query": {
-        "match": {
-            "lonely": true
-        }
-    }
+    "username1": {
+        "created_utc": 1512086400,
+        "comment_karma": 1200,
+        "link_karma": 350,
+        "posts": 5,
+        "possible_twins": [
+            {
+                "name": "pepito", 
+                "created_utc": 1512000000, 
+                "updated_utc": 151200000, 
+                "comment_karma": 1150, 
+                "link_karma": 349
+            }, 
+            {
+                "name": "menganito", 
+                ...
+            }, 
+            ...
+        ]
+    },
+    "username2": ...
 }
