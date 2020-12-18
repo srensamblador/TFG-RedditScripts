@@ -72,7 +72,7 @@ def main(args):
     print(&#34;Cargando datos...&#34;)
     with open(args.source, &#34;rb&#34;) as f:
         users = pickle.load(f)
-
+   
     print(&#34;Generando lista de candidatos...&#34;)
     set_users = set()
     for user in users:
@@ -106,7 +106,7 @@ def parse_args():
         Procesamiento de los argumentos con los que se ejecutó el script
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script que genera un csv con candidatos a &#39;gemelo&#39; y su número de posts&#34;)
-    parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;pickles/users_and_possible_twins.pickle&#34;, help=&#34;Ruta del archivo con el diccionario de &#34; 
+    parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;pickles/FaseB/users_and_possible_twins.pickle&#34;, help=&#34;Ruta del archivo con el diccionario de &#34; 
         &#34;usuarios obtenido en el script find_possible_twins.py&#34;)
     parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;posts_per_user.csv&#34;, help=&#34;Archivo donde se volcarán los resultados&#34;)
     parser.add_argument(&#34;-b&#34;, &#34;--before&#34;, default=date.today(), 
@@ -145,7 +145,7 @@ if __name__ == &#34;__main__&#34;:
     print(&#34;Cargando datos...&#34;)
     with open(args.source, &#34;rb&#34;) as f:
         users = pickle.load(f)
-
+   
     print(&#34;Generando lista de candidatos...&#34;)
     set_users = set()
     for user in users:
@@ -188,7 +188,7 @@ if __name__ == &#34;__main__&#34;:
         Procesamiento de los argumentos con los que se ejecutó el script
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#34;Script que genera un csv con candidatos a &#39;gemelo&#39; y su número de posts&#34;)
-    parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;pickles/users_and_possible_twins.pickle&#34;, help=&#34;Ruta del archivo con el diccionario de &#34; 
+    parser.add_argument(&#34;-s&#34;, &#34;--source&#34;, default=&#34;pickles/FaseB/users_and_possible_twins.pickle&#34;, help=&#34;Ruta del archivo con el diccionario de &#34; 
         &#34;usuarios obtenido en el script find_possible_twins.py&#34;)
     parser.add_argument(&#34;-o&#34;, &#34;--output&#34;, default=&#34;posts_per_user.csv&#34;, help=&#34;Archivo donde se volcarán los resultados&#34;)
     parser.add_argument(&#34;-b&#34;, &#34;--before&#34;, default=date.today(), 
