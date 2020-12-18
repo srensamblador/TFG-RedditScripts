@@ -7,7 +7,9 @@
 
     Parámetros
     ----------
-    * -d, --data-dir: directorio donde está almacenados los .json a indexar
+    * -i, --index: nombre del índice a crear.
+    * -d, --data-dir: directorio donde está almacenados los .json a indexar.
+    * -f, --filter: fichero JSON con un filtro de campos y valores a aplicar. Opcional.
     * -b, --block-size: tamaño de los bloques de líneas a procesar de cada vez, en Mb. Por defecto, 8.
     * -e, --elasticsearch: dirección del servidor Elasticsearch contra el que se indexará.
 """
