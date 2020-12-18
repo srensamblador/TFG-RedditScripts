@@ -28,7 +28,9 @@ El script procesa los ficheros .json (incluido comprimidos en .gz) …" />
 índices reddit-loneliness y reddit-loneliness-ngram.</p>
 <h2 id="parametros">Parámetros</h2>
 <ul>
-<li>-d, &ndash;data-dir: directorio donde está almacenados los .json a indexar</li>
+<li>-i, &ndash;index: nombre del índice a crear.</li>
+<li>-d, &ndash;data-dir: directorio donde está almacenados los .json a indexar.</li>
+<li>-f, &ndash;filter: fichero JSON con un filtro de campos y valores a aplicar. Opcional.</li>
 <li>-b, &ndash;block-size: tamaño de los bloques de líneas a procesar de cada vez, en Mb. Por defecto, 8.</li>
 <li>-e, &ndash;elasticsearch: dirección del servidor Elasticsearch contra el que se indexará.</li>
 </ul>
@@ -45,7 +47,9 @@ El script procesa los ficheros .json (incluido comprimidos en .gz) …" />
 
     Parámetros
     ----------
-    * -d, --data-dir: directorio donde está almacenados los .json a indexar
+    * -i, --index: nombre del índice a crear.
+    * -d, --data-dir: directorio donde está almacenados los .json a indexar.
+    * -f, --filter: fichero JSON con un filtro de campos y valores a aplicar. Opcional.
     * -b, --block-size: tamaño de los bloques de líneas a procesar de cada vez, en Mb. Por defecto, 8.
     * -e, --elasticsearch: dirección del servidor Elasticsearch contra el que se indexará.
 &#34;&#34;&#34;
