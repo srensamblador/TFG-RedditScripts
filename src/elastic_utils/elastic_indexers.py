@@ -309,7 +309,7 @@ class NgramIndexer(Indexer):
             }
         }
         self.es.indices.put_mapping(
-            index=self.index_name, doc_type="post", body=arguments,  include_type_name=True)
+            index=self.index_name, doc_type="post", body=arguments, include_type_name=True)
 
 class UserIndexer(Indexer):
     """
