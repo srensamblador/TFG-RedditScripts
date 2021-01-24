@@ -337,7 +337,7 @@ class NgramIndexer(Indexer):
             }
         }
         self.es.indices.put_mapping(
-            index=self.index_name, doc_type=&#34;post&#34;, body=arguments,  include_type_name=True)
+            index=self.index_name, doc_type=&#34;post&#34;, body=arguments, include_type_name=True)
 
 class UserIndexer(Indexer):
     &#34;&#34;&#34;
@@ -955,7 +955,7 @@ Si el indexer se instanción con filtros, excluimos aquellos documentos afectado
             }
         }
         self.es.indices.put_mapping(
-            index=self.index_name, doc_type=&#34;post&#34;, body=arguments,  include_type_name=True)</code></pre>
+            index=self.index_name, doc_type=&#34;post&#34;, body=arguments, include_type_name=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1081,7 +1081,7 @@ Añade un analizador para tal fin</p></div>
         }
     }
     self.es.indices.put_mapping(
-        index=self.index_name, doc_type=&#34;post&#34;, body=arguments,  include_type_name=True)</code></pre>
+        index=self.index_name, doc_type=&#34;post&#34;, body=arguments, include_type_name=True)</code></pre>
 </details>
 </dd>
 </dl>
