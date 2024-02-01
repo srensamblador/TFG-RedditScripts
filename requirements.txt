@@ -3,7 +3,7 @@ elasticsearch
 progressbar2
 numpy
 nltk
-scikit_learn==0.23.2
+scikit_learn==1.0.1
 ndjson
 joblib
 matplotlib
